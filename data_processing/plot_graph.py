@@ -2,17 +2,19 @@
 
 import networkx as nx
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-#returns a dictionary of amino acid type for each edge
+#returns a dictionary of amino acid type for each amino acid
 def get_edge_labels(edgelist):
 	labels = {}
 
 	for edge in edgelist:
 		if edge[0] not in labels.keys():
-			labels[edge[0]] = edge[1]
+			labels[edge[0]] = "{}({})".format(edge[1], edge[0])
 		if edge[2] not in labels.keys():
-			labels[edge[2]] = edge[3]
+			labels[edge[2]] = "{}({})".format(edge[2], edge[3])
 
 	return labels
 
@@ -31,9 +33,15 @@ def run():
 		G.add_edges_from(edges_processed)
 
 		pos = nx.spring_layout(G, k=3/np.sqrt(len(edge_labels.keys())))
-		nx.draw_networkx(G, pos=pos)
 
-		plt.show()
+		print len(edge_labels.keys())
+		print len(edgelist)
+
+		nx.draw_networkx(G, pos=pos)
+		plt.title("Amino Acid Contacts for 1AA2")
+		plt.axis('off')
+
+		plt.savefig("1aa2_plot.png")
 
 
 

@@ -1,6 +1,12 @@
 #!/bin/bash
 
-pdbfile=../data/raw_pdb/1aa2.pdb
-outfile=../data/graph_files/1aa2_graph.txt
 
-python graph_from_pdb.py -pdb $pdbfile -o $outfile
+#produces a graph file from all PDB files in the given folder
+pdbfolder=../data/raw_pdb
+outfolder=../data/graph_files
+
+for file in $pdbfolder/*; do	
+	python graph_from_pdb.py -pdb $file -o $outfolder
+done
+
+

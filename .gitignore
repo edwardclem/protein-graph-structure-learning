@@ -1,5 +1,6 @@
 *.pyc
 *.log
 *.aux
-*.syntec.gz
+*.synctex.gz
+*.out
 *.DS_Store

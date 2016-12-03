@@ -79,7 +79,7 @@ def features_from_pdb(filename, outfolder):
     #produce all possible pairs of amino acids, compute distances
     n_aa_combinations = len(AMINO_ACIDS)*(len(AMINO_ACIDS) + 1)/2
     seq_dist_idx = n_aa_combinations
-    seq_len_idx = n_aa_combinations + 1
+    seq_len_idx = n_aa_combinations + 2
     features = np.zeros((len(sequence)*(len(sequence) + 1)/2, \
     						n_aa_combinations + 1 + 1 + 1)) # 1 for distance, 1 for seqlength, 1 for true example
     features[:,seq_len_idx] = len(sequence)

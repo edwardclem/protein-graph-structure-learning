@@ -82,7 +82,7 @@ def get_distance_count(filename):
 	observed = None
 	with open(filename) as f:
 		seq_length = int(f.readline())
-		observed = np.zeros(seq_length, dtype=np.float64)
+		observed = np.zeros(seq_length - 1, dtype=np.float64)
 		line = f.readline()
 		while line:
 			line = line.split(' ')
@@ -91,29 +91,36 @@ def get_distance_count(filename):
 			dist = abs(curr - other)
 			observed[dist - 1] += 1
 			line = f.readline()
-	total = np.arange(len(observed), dtype=np.float64)[:0:-1]
+	total = np.arange(len(observed) + 1, dtype=np.float64)[:0:-1]
 	return observed, total
 
 # Gets count over all graph files in a directory. Cannot have anything else in directory.
 def get_distance_all(directory, num_files=None):
 	total_observed = np.zeros(1)
+	relative_distance = []
 	total_count = np.zeros(1)
 	for i, filename in enumerate(os.listdir(directory)):
-		observed, count = get_distance_count(filename)
-		len_curr = len(total_observed)
-		len_new = len(observed)
-		if (len_curr >= len_new):
-			total_observed[:len_curr] += observed
-			total_count[:len_curr] += observed
+		observed, count = get_distance_count(directory + filename)
+		relative_distance.append(observed/len(observed))
+		if (len(total_observed) >= len(observed)):
+			total_observed[:len(observed)] += observed
+			total_count[:len(observed)] += observed
 		else:
-			observed[:len_new] += total_observed
-			count[:len_new] += total_count
+			observed[:len(total_observed)] += total_observed
+			count[:len(total_observed)] += total_count
 			total_observed = observed
 			total_count = count
 		if num_files and i >= num_files:
 			break
-	return total_observed, total_count
+	relative_distance = np.concatenate(relative_distance)
+	return total_observed, total_count, relative_distance
 
+import matplotlib.pyplot as plt
+def show_graph(protein_name):
+	filename = 'data/graph_files/' + protein_name + '_graph.txt'
+	observed, count = get_distance_count(filename)
+	plt.plot(observed/count)
+	plt.show()
 
 
 

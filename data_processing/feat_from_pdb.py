@@ -81,14 +81,13 @@ def features_from_pdb(filename, outfolder):
                 sequence.append((str(amino_number), amino_type, np.array([float(coord) for coord in coords])))
                 amino_number = amino_number + 1
 
+    num_edges = len(sequence)*(len(sequence) - 1)/2
+
     #produce all possible pairs of amino acids, compute distances
     n_aa_combinations = len(AMINO_ACIDS)*(len(AMINO_ACIDS) + 1)/2
-    seq_dist_idx = n_aa_combinations
-    seq_len_idx = n_aa_combinations + 1
-    features = np.zeros(n_aa_combinations + 1 + 1, dtype=int) # 1 for distance, 1 for seqlength
-    features[seq_len_idx] = len(sequence)
-
-    true_example = np.zeros((len(sequence)*(len(sequence) + 1)/2, 1), dtype=int)
+    amino_acid_index = np.zeros((num_edges,1), dtype=int)
+    seq_dist_total = 0
+    true_example = np.zeros((num_edges, 1), dtype=int)
 
     edges = set()
 
@@ -97,27 +96,26 @@ def features_from_pdb(filename, outfolder):
         seq_num1, type1, coord1 = pair[0]
         seq_num2, type2, coord2 = pair[1]
 
-        aa_idx = AA_IDX[(min(type1, type2), max(type1, type2))]
+        aa_pair = AA_IDX[(min(type1, type2), max(type1, type2))]
 
         # idx*(idx + 1)/2 is the offset for dealing with upper triangular matrix
-        features[aa_idx] += 1
-        features[seq_dist_idx] += abs(int(seq_num1) - int(seq_num2))
+        amino_acid_index[i] = aa_pair
 
         dist = np.linalg.norm(coord1 - coord2)
         if dist < 10.0: #angstroms
             edges.add(tuple(sorted((int(seq_num1), int(seq_num2)))))
             true_example[i] = 1
-    num_edges = len(edges)
+            seq_dist_total += abs(int(seq_num1) - int(seq_num2))
     edge_density = get_three_factor_stats(edges, len(sequence))
 
-    suff_stats_protein = np.concatenate((features, np.array([num_edges], dtype=int), edge_density))
+    #suff_stats_protein = np.concatenate((features, np.array([num_edges], dtype=int), edge_density))
 
 
     #convert to string, save file
     base = os.path.basename(filename)
     outfile = "{}/{}_processed.mat".format(outfolder, os.path.splitext(base)[0])
     print "saving to {}".format(outfile)
-    sio.savemat(outfile, {'ss_protein' : suff_stats_protein, 'true_edges' : true_example})
+    sio.savemat(outfile, {'aa_index' : amino_acid_index, 'edge_density':edge_density, 'sum_true_dist':seq_dist_total, 'true_edges' : true_example, 'seqlen':len(sequence)})
     #saving as sparse matrix
     # outfile_ss = "{}/{}_features.mat".format(outfolder, os.path.splitext(base)[0])
     # print "saving to {}".format(outfile_ss)

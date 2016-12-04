@@ -1,7 +1,7 @@
 include Makefile.conf
 
 # Define build targets
-MATLAB_TARGETS: build/calcF$(ME) build/calc_alpha$(ME)
+MATLAB_TARGETS: build/calcF$(ME) build/calc_muhat$(ME)
 TARGETS:=$(TARGETS) $(MATLAB_TARGETS)
 
 MEX:=$(MEX) $(MEXFLAGS) $(MEXINC) $(MEXLIB) $(MEXLIBS)
@@ -20,8 +20,8 @@ matlabs : $(MATLAB_TARGETS)
 build/calcF$(ME) : mex/calcF.cpp
 	 $(MEX) $(MEXOUTFLAG) $@ mex/calcF.cpp
 
-build/calc_alpha$(ME) : mex/calc_alpha.cpp
-	 $(MEX) $(MEXOUTFLAG) $@ mex/calc_alpha.cpp
+build/calc_muhat$(ME) : mex/calc_muhat.cpp
+	 $(MEX) $(MEXOUTFLAG) $@ mex/calc_muhat.cpp
 
 # CLEAN
 ########

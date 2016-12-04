@@ -26,7 +26,7 @@ def potential_test(filename):
 	return edge_density, len(edges), seqlen*(seqlen - 1)/2
 
 def get_three_factor_stats(edges, seqlen):
-	edge_density = np.zeros(4)
+	edge_density = np.zeros(4, dtype=int)
 	for (first, second, third) in combinations(range(seqlen), 3):
 		num_present = int((first, second) in edges)
 		num_present += int((first, third) in edges)

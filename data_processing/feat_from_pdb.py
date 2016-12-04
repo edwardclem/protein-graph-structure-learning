@@ -112,7 +112,7 @@ def features_from_pdb(filename, outfolder):
     final_feats = np.sum(features, 0)
     num_edges = len(edges)
     edge_density = get_three_factor_stats(edges, len(sequence))
-
+    print "edge_density:", edge_density
     suff_stats_protein = np.concatenate((final_feats, np.array([num_edges]), edge_density))
 
 

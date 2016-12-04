@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 from sys import argv
 from itertools import combinations, combinations_with_replacement
 import numpy as np
+import scipy.io as sio
 import os
 from scipy import sparse, io
 from test_three_edge_potential import get_three_factor_stats
@@ -117,14 +118,21 @@ def features_from_pdb(filename, outfolder):
 
     #convert to string, save file
     base = os.path.basename(filename)
+    outfile = "{}/{}_processed.mat".format(outfolder, os.path.splitext(base)[0])
+    print "saving to {}".format(outfile)
+    sio.savemat(outfile, {'ss_protein' : suff_stats_protein, 'true_edges' : true_example})
     #saving as sparse matrix
-    outfile_ss = "{}/{}_features.npy".format(outfolder, os.path.splitext(base)[0])
-    print "saving to {}".format(outfile_ss)
-    #io.mmwrite(outfilename, sparse.lil_matrix(features))
-    np.save(outfile_ss, suff_stats_protein)
-    outfile_true = "{}/{}_true.npy".format(outfolder, os.path.splitext(base)[0])
-    print "saving truth to {}".format(outfile_true)
-    np.save(outfile_true, true_example)
+    # outfile_ss = "{}/{}_features.mat".format(outfolder, os.path.splitext(base)[0])
+    # print "saving to {}".format(outfile_ss)
+    # #io.mmwrite(outfilename, sparse.lil_matrix(features))
+    # #np.save(outfile_ss, suff_stats_protein)
+    # sio.savemat(outfile_ss, {'ss_protein' : suff_stats_protein})
+    # outfile_true = "{}/{}_true.mat".format(outfolder, os.path.splitext(base)[0])
+    # print "saving truth to {}".format(outfile_true)
+    # #np.save(outfile_true, true_example)
+    # sio.savemat(outfile_true, {})
+
+
 
 def run(args):
     features_from_pdb(args.pdb, args.o)

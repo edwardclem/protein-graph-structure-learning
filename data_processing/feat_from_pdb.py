@@ -85,9 +85,8 @@ def features_from_pdb(filename, outfolder):
     n_aa_combinations = len(AMINO_ACIDS)*(len(AMINO_ACIDS) + 1)/2
     seq_dist_idx = n_aa_combinations
     seq_len_idx = n_aa_combinations + 1
-    features = np.zeros((len(sequence)*(len(sequence) + 1)/2, \
-                            n_aa_combinations + 1 + 1)) # 1 for distance, 1 for seqlength
-    features[:,seq_len_idx] = len(sequence)
+    features = np.zeros(n_aa_combinations + 1 + 1) # 1 for distance, 1 for seqlength
+    features[seq_len_idx] = len(sequence)
 
     true_example = np.zeros((len(sequence)*(len(sequence) + 1)/2, 1))
 
@@ -101,20 +100,17 @@ def features_from_pdb(filename, outfolder):
         aa_idx = AA_IDX[(min(type1, type2), max(type1, type2))]
 
         # idx*(idx + 1)/2 is the offset for dealing with upper triangular matrix
-        features[i, aa_idx] = 1
-        #features[i, seq_dist_idx] = abs(int(seq_num1) - int(seq_num2))
+        features[aa_idx] += 1
+        features[seq_dist_idx] += abs(int(seq_num1) - int(seq_num2))
 
         dist = np.linalg.norm(coord1 - coord2)
         if dist < 10.0: #angstroms
             edges.add(tuple(sorted((int(seq_num1), int(seq_num2)))))
             true_example[i] = 1
-    return edges
-    final_feats = np.sum(features, 0)
-    num_edges = len(edges)
+
     edge_density = get_three_factor_stats(edges, len(sequence))
     print "edge_density:", edge_density
-    suff_stats_protein = np.concatenate((final_feats, np.array([num_edges]), edge_density))
-
+    suff_stats_protein = np.concatenate((features, np.array([num_edges]), edge_density))
 
     #convert to string, save file
     base = os.path.basename(filename)

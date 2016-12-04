@@ -88,7 +88,7 @@ def features_from_pdb(filename, outfolder):
     features = np.zeros(n_aa_combinations + 1 + 1, dtype=int) # 1 for distance, 1 for seqlength
     features[seq_len_idx] = len(sequence)
 
-    true_example = np.zeros((len(sequence)*(len(sequence) + 1)/2, 1))
+    true_example = np.zeros((len(sequence)*(len(sequence) + 1)/2, 1), dtype=int)
 
     edges = set()
 

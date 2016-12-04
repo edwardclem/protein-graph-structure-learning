@@ -106,9 +106,9 @@ def features_from_pdb(filename, outfolder):
 
         dist = np.linalg.norm(coord1 - coord2)
         if dist < 10.0: #angstroms
-            edges.add(tuple(sorted((seq_num1, seq_num2))))
+            edges.add(tuple(sorted((int(seq_num1), int(seq_num2)))))
             true_example[i] = 1
-            
+    return edges
     final_feats = np.sum(features, 0)
     num_edges = len(edges)
     edge_density = get_three_factor_stats(edges, len(sequence))

@@ -115,7 +115,7 @@ def features_from_pdb(filename, outfolder):
     base = os.path.basename(filename)
     outfile = "{}/{}_processed.mat".format(outfolder, os.path.splitext(base)[0])
     print "saving to {}".format(outfile)
-    sio.savemat(outfile, {'aa_index' : amino_acid_index, 'edge_density':edge_density, 'sum_true_dist':seq_dist_total, 'true_edges' : true_example, 'seqlen':len(sequence)})
+    sio.savemat(outfile, {'aa_index': amino_acid_index, 'edge_density':edge_density, 'sum_true_dist':seq_dist_total, 'true_edges' : true_example, 'seqlen':len(sequence)})
     #saving as sparse matrix
     # outfile_ss = "{}/{}_features.mat".format(outfolder, os.path.splitext(base)[0])
     # print "saving to {}".format(outfile_ss)

@@ -107,7 +107,7 @@ def features_from_pdb(filename, outfolder):
         if dist < 10.0: #angstroms
             edges.add(tuple(sorted((int(seq_num1), int(seq_num2)))))
             true_example[i] = 1
-
+    num_edges = len(edges)
     edge_density = get_three_factor_stats(edges, len(sequence))
     print "edge_density:", edge_density
     suff_stats_protein = np.concatenate((features, np.array([num_edges]), edge_density))

@@ -1,11 +1,9 @@
 include Makefile.conf
 
 # Define build targets
-MATLAB_TARGETS: build/mean_field$(ME)
+MATLAB_TARGETS: build/calcF$(ME) build/calc_muhat$(ME)
 TARGETS:=$(TARGETS) $(MATLAB_TARGETS)
-SRCS:=mean_field.cpp
 
-DEPS:=$(SRCS:%.cpp=mex/%.cpp)
 MEX:=$(MEX) $(MEXFLAGS) $(MEXINC) $(MEXLIB) $(MEXLIBS)
 
 # META TARGETS
@@ -19,11 +17,14 @@ matlabs : $(MATLAB_TARGETS)
 
 # MATLAB CODE
 ###################
-build/mean_field$(ME) : $(DEPS)
-	 $(MEX) $(MEXOUTFLAG) $@ $(DEPS)
+build/calcF$(ME) : mex/calcF.cpp
+	 $(MEX) $(MEXOUTFLAG) $@ mex/calcF.cpp
+
+build/calc_muhat$(ME) : mex/calc_muhat.cpp
+	 $(MEX) $(MEXOUTFLAG) $@ mex/calc_muhat.cpp
 
 # CLEAN
 ########
 .PHONY : clean
 clean :
-	-rm *$(ME)
+	-rm build/*$(ME)

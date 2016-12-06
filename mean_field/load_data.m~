@@ -1,8 +1,0 @@
-function load_data(directory)
-
-fileset = dir([directory '*.mat']);
-ss = zeros([numel(fileset), 217]);
-gt = 
-for 
-
-end

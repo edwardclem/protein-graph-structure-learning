@@ -1,4 +1,4 @@
-function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats)
+function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen)
     % [ll,grad] = getLlikCRFMean(theta, ss, L, N, feats)
     % Compute the negative log-likelihood and gradient for the CRF with a
     % mean-field approximation.
@@ -29,20 +29,23 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats)
 %     ss = ss(1:N*(N+1)/2);
     
     % Compute joint and marginal statistics for current model
-    nFeats = size(feats,1);
-    
-    mus = margProbMean(theta,feats,[]);
-    
+    mus = margProbMean(theta,N,feats,seqlen);
+    % DEBUG!!
+%     mus = cell(L, 1);
+%     for l = 1:L
+%         mus{l} = ones(N(l), 1);
+%     end
+    gamma = theta(5:end-3);
+    keyboard
     F = 0;
     for l = 1:L
-        F = F + mus(:,l)'*thetaMat*mus(:,l)/2 ...
-              + theta(1:N)'*mus(:,l) ...
-              + feats(:,l)'*gam*mus(:,l) ... % image features
-              - mus(:,l)'*log(mus(:,l)) ...
-              - (1 - mus(:,l))'*log(1 - mus(:,l));
+        F = F + calcF(mus{l}, feats{l}, seqlen(l), ...
+                        theta(1:4), gamma, theta(end-2), theta(end-1), ...
+                        theta(end));
     end
                 
     ll = theta'*ss - F;
+    keyboard
     
     phi_mu = zeros(size(ss));
     for l = 1:L

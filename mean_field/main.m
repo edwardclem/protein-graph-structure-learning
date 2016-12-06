@@ -23,26 +23,3 @@ llTrace = NaN(options.maxIter, 1);
 [thetaML,~, ~, outputInfo] = minFunc(@penalizedL2, theta, options, funLL, lambdaL2);
 llTrace(1:length(outputInfo.trace.fval), a) = outputInfo.trace.fval;
 
-%% Question 2f
-% TODO: Complete margProbMean.m, getLlikMRFMean.m, getLlikCRFMean.m
-
-tic;
-dataset = 1; % run on dataset 1
-algsInd = 6; 
-[algs2,aucAll2,llTrace2] = runexp(dataset,algsInd);
-
-% combine results to display
-algs=[algs,algs2];
-llTrace=cat(2,llTrace,llTrace2);
-aucAll=cat(3,aucAll,aucAll2);
-
-makePlots(algs,aucAll,llTrace,dataset,2);
-t2 = toc;
-
-%% Question 2g
-tic;
-dataset=2; % run on dataset 2
-algsInd = [1,4,5,6]; 
-[algs3,aucAll3,llTrace3] = runexp(dataset,algsInd);
-makePlots(algs3,aucAll3,llTrace3,dataset,3);
-t3=toc;

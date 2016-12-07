@@ -11,7 +11,9 @@
 
 // Get index of mu_ij given seqence length. Have to offset for upper triangular matrix
 inline size_t get_idx(size_t seqlen, size_t i, size_t j) {
-	return i*seqlen - (i+1)*(i+2)/2 + j;
+	size_t first = fmin(i,j);
+	size_t second = fmax(i,j);
+	return first*seqlen - (first+1)*(first+2)/2 + second;
 }
 
 /*
@@ -29,7 +31,7 @@ void calc_muhat(double *mus, uint32_t *feats_aa, size_t seqlen,
 	double alpha;
 	double mu_ik, mu_jk;
 	double prob_0, prob_1, prob_2, prob_3;
-	double diff[NUM_ITER];
+	double diff = 0;
 	// coordinate ascent for NUM_ITER iterations
 	for (size_t iter = 0; iter < NUM_ITER; iter++) {
 		for (size_t i = 0; i <= seqlen - 2; i++) {
@@ -45,7 +47,10 @@ void calc_muhat(double *mus, uint32_t *feats_aa, size_t seqlen,
 				alpha += gamma[feats_aa[mu_idx]] + (j - i)*theta_dist + theta_prior;
 
 				// Calculation for triplet factors. Depends on mu_ik, mu_jk.
-				for (size_t k = j + 1; k < seqlen; k++) {
+				for (size_t k = 0; k < seqlen; k++) {
+					if ((k == i) || (k == j))
+						continue;
+
 					mu_ik = mus[get_idx(seqlen, i, k)];
 					mu_jk = mus[get_idx(seqlen, j, k)];
 
@@ -57,12 +62,13 @@ void calc_muhat(double *mus, uint32_t *feats_aa, size_t seqlen,
 					alpha += theta_tri[0]*prob_0 + theta_tri[1]*prob_1 + theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
 				}
 				alpha = exp(alpha);
-				diff[iter] += std::abs(mus[mu_idx] - (alpha / (1 + alpha)));
+				diff += std::abs(mus[mu_idx] - (alpha / (1 + alpha)));
 				mus[mu_idx] = alpha / (1 + alpha);
 			}
 		}
-		if (diff[iter] < CONV_TOL)
+		if (diff < CONV_TOL)
 			break;
+		diff = 0;
 	}
 }
 

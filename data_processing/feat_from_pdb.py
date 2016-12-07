@@ -110,7 +110,6 @@ def features_from_pdb(filename, outfolder):
 
     #suff_stats_protein = np.concatenate((features, np.array([num_edges], dtype=int), edge_density))
 
-
     #convert to string, save file
     base = os.path.basename(filename)
     outfile = "{}/{}_processed.mat".format(outfolder, os.path.splitext(base)[0])

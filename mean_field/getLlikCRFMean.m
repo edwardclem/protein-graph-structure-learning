@@ -1,4 +1,4 @@
-function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats)
+function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen)
     % [ll,grad] = getLlikCRFMean(theta, ss, L, N, feats)
     % Compute the negative log-likelihood and gradient for the CRF with a
     % mean-field approximation.
@@ -29,37 +29,30 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats)
 %     ss = ss(1:N*(N+1)/2);
     
     % Compute joint and marginal statistics for current model
-    nFeats = size(feats,1);
-    
-    mus = margProbMean(theta,feats,[]);
-    
+    mus = margProbMean(theta,N,feats,seqlen);
+    % DEBUG!!
+%     mus = cell(L, 1);
+%     for l = 1:L
+%         mus{l} = 0.5*ones(N(l), 1);
+%     end
+    gamma = theta(5:end-3);
     F = 0;
+    gradF = zeros(size(ss));
+    fprintf('\tCalculating F and gradF... ');
+    tstart = tic;
     for l = 1:L
-        F = F + mus(:,l)'*thetaMat*mus(:,l)/2 ...
-              + theta(1:N)'*mus(:,l) ...
-              + feats(:,l)'*gam*mus(:,l) ... % image features
-              - mus(:,l)'*log(mus(:,l)) ...
-              - (1 - mus(:,l))'*log(1 - mus(:,l));
+        [F_l, gradF_l] = calcF(mus{l}, feats{l}, seqlen(l), ...
+                            theta(1:4), gamma, theta(end-2), ...
+                            theta(end-1), theta(end));
+        F = F + F_l;
+        gradF = gradF + gradF_l;
     end
-                
+    tstop = toc(tstart);
+    fprintf('done. Time: %0.1fs.\n', tstop);
     ll = theta'*ss - F;
+    grad = ss - gradF;
     
-    phi_mu = zeros(size(ss));
-    for l = 1:L
-        phi_mu(1:N) = phi_mu(1:N) + mus(1:N,l);
-        edgeIndex = N+1;
-        for ii = 1:N-1
-            for jj = ii+1:N
-                phi_mu(edgeIndex) = phi_mu(edgeIndex) + mus(ii,l)*mus(jj,l);
-                edgeIndex = edgeIndex + 1;
-            end
-        end
-    end
-    temp = mus';
-    temp = reshape(temp, [1, size(temp)]);
-    phi_feat = sum(bsxfun(@times,temp,feats),2);
-    phi_mu(edgeIndex:end) = phi_feat(:);
-    grad = ss - phi_mu;
+    fprintf('\t\t||gradient|| = %0.3f\n', norm(grad))
     
     ll = -ll;
     grad = -grad;

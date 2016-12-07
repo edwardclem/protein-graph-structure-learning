@@ -1,44 +1,33 @@
-function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen)
+function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, crfOpt)
     % [ll,grad] = getLlikCRFMean(theta, ss, L, N, feats)
     % Compute the negative log-likelihood and gradient for the CRF with a
     % mean-field approximation.
     % 
     % Inputs:
-    %    theta: Current estimate of the parameters. The
-    %           first 4 entries, theta(1:4) are the parameters governing the
-    %           tertiary potentials. theta(5:end) govern the interaction
-    %           with the image features.
+    %    theta: Parameters of the model. theta(1:4) encodes the parameters 
+    %       governing the tertiary potentials. theta(5:end-3) encode the
+    %       parameters governing the amino acid potentials. theta(end-2)
+    %       encodes the distance parameter, theta(end-1) encodes the seqlen
+    %       parameter, and theta(end) encodes the prior.
+    %    N:  a length L vector containing the number of edges in the l-th
+    %        example.
+    %    feats: Set of protein features. A L length cell array, with each array
+    %           feats(l) containing a [#feats x N(l)] array.
     %    ss: Sufficient statistics needed to compute log-likelihood and
-    %        gradients. These are returned by suffStatsCRF.m
+    %        gradients. These are returned by load_data.m
     %    L: Number of training examples
-    %    N: Length L vector of number of possible edges for each training 
-    %       example 
-    %    feats: M x L vector of image features, where M is the number of
-    %           features per image.  This is not necessarily used in this
-    %           function (but we provide it so calls to MRFs and CRFs are
-    %           identical).
+    %    crfOpt: Options for things...
     % Outputs:
     %    ll: the data log-likelihood
     %    grad: the gradient of the log-likelihood function for the given value
     %          of theta
-
-
-    % separate out the sufficient statistics relating to the
-    % node-occurence statistics, and the node-image statistics. why???
-%     featSS = ss(N*(N+1)/2+1:end);
-%     ss = ss(1:N*(N+1)/2);
     
     % Compute joint and marginal statistics for current model
-    mus = margProbMean(theta,N,feats,seqlen);
-    % DEBUG!!
-%     mus = cell(L, 1);
-%     for l = 1:L
-%         mus{l} = 0.5*ones(N(l), 1);
-%     end
+    mus = margProbMean(theta,N,feats,seqlen,crfOpt.verbose);
     gamma = theta(5:end-3);
     F = 0;
     gradF = zeros(size(ss));
-    fprintf('\tCalculating F and gradF... ');
+    if crfOpt.verbose; fprintf('\tCalculating F and gradF... '); end;
     tstart = tic;
     for l = 1:L
         [F_l, gradF_l] = calcF(mus{l}, feats{l}, seqlen(l), ...
@@ -48,11 +37,9 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen)
         gradF = gradF + gradF_l;
     end
     tstop = toc(tstart);
-    fprintf('done. Time: %0.1fs.\n', tstop);
+    if crfOpt.verbose; fprintf('done. Time: %0.1fs. GradVal: %0.3f\n', tstop, norm(grad)); end;
     ll = theta'*ss - F;
     grad = ss - gradF;
-    
-    fprintf('\t\t||gradient|| = %0.3f\n', norm(grad))
     
     ll = -ll;
     grad = -grad;

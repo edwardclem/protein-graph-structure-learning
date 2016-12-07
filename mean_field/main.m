@@ -2,7 +2,7 @@ seed = 0;
 rng(seed);
 
 %% Load data, split into train + test
-directory = '../data/summed_suffstats/test/';
+directory = '../data/summed_suffstats/';
 [ss_proteins, features_aa, seqlen_all, gt] = load_data(directory);
 L = numel(features_aa); % seqlen variable
 N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
@@ -13,9 +13,10 @@ N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
 lambdaBar = 0;
 options.maxIter=1000;
 options.progTol=1e-11;
+crfOpt.verbose=0;
 
 % Setup inputs
-funLL = @(theta)getLlikCRFMean(theta, ss_proteins, L, N, features_aa, seqlen_all);
+funLL = @(theta)getLlikCRFMean(theta, ss_proteins, L, N, features_aa, seqlen_all, crfOpt);
 theta = zeros([numel(ss_proteins), 1]);
 lambdaL2 = ones(size(theta))*lambdaBar;
 llTrace = NaN(options.maxIter, 1);

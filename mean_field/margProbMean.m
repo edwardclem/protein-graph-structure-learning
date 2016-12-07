@@ -30,7 +30,7 @@ function [mus] = margProbMean(theta,N,feats,seqlen)
         mus{l} = calc_muhat(uint32(N(l)), feats{l}, seqlen(l), ...
                         theta(1:4), gamma, theta(end-2), theta(end-1), ...
                         theta(end));
-%         percentDone = 100 * l / L;
+                    
         msg = sprintf('%d / %d', l, L);
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));

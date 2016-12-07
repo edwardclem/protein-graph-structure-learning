@@ -52,6 +52,8 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen)
     ll = theta'*ss - F;
     grad = ss - gradF;
     
+    fprintf('\t\t||gradient|| = %0.3f\n', norm(grad))
+    
     ll = -ll;
     grad = -grad;
     

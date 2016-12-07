@@ -3,10 +3,11 @@
  * Used in mean-field CRF approximation.
  */
 #include "mex.h"
-#include <math.h>
+#include <cmath>
 #include <string.h>
 
 #define NUM_ITER 20
+#define CONV_TOL 0.0001
 
 // Get index of mu_ij given seqence length. Have to offset for upper triangular matrix
 inline size_t get_idx(size_t seqlen, size_t i, size_t j) {
@@ -28,6 +29,7 @@ void calc_muhat(double *mus, uint32_t *feats_aa, size_t seqlen,
 	double alpha;
 	double mu_ik, mu_jk;
 	double prob_0, prob_1, prob_2, prob_3;
+	double diff[NUM_ITER];
 	// coordinate ascent for NUM_ITER iterations
 	for (size_t iter = 0; iter < NUM_ITER; iter++) {
 		for (size_t i = 0; i <= seqlen - 2; i++) {
@@ -55,9 +57,12 @@ void calc_muhat(double *mus, uint32_t *feats_aa, size_t seqlen,
 					alpha += theta_tri[0]*prob_0 + theta_tri[1]*prob_1 + theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
 				}
 				alpha = exp(alpha);
+				diff[iter] += std::abs(mus[mu_idx] - (alpha / (1 + alpha)));
 				mus[mu_idx] = alpha / (1 + alpha);
 			}
 		}
+		if (diff[iter] < CONV_TOL)
+			break;
 	}
 }
 

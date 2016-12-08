@@ -4,6 +4,7 @@
  */
 #include "mex.h"
 #include <math.h>
+#include <cstdint>
 
 #define NUM_FEATURES 217
 #define NUM_INTERACTIONS 4

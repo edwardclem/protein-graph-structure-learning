@@ -1,5 +1,8 @@
 function [ss_proteins, features_aa, seqlen_all, gt] = load_data(directory)
 nAA = 20;
+if ~strcmp(directory(end), '/')
+    directory = [directory '/'];
+end
 fileset = dir([directory '*.mat']);
 features_aa = cell(numel(fileset), 1);
 seqlen_all = zeros([numel(fileset), 1]);

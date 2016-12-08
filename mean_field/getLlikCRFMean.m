@@ -22,8 +22,19 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, crfOpt)
     %    grad: the gradient of the log-likelihood function for the given value
     %          of theta
     
+    if ~isfield(crfOpt, 'verbose')
+        crfOpt.verbose = 0;
+    end
+    if ~isfield(crfOpt, 'nThreads')
+        crfOpt.nThreads = uint32(1);
+    end
+    if ~isa(crfOpt.nThreads, 'uint32')
+        crfOpt.nThreads = uint32(crfOpt.nThreads);
+    end
+    
+    
     % Compute joint and marginal statistics for current model
-    mus = margProbMean(theta,N,feats,seqlen,crfOpt.verbose);
+    mus = margProbMean(theta,N,feats,seqlen,crfOpt);
     gamma = theta(5:end-3);
     F = 0;
     gradF = zeros(size(ss));

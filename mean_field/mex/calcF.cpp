@@ -24,9 +24,16 @@ inline size_t get_idx(size_t seqlen, size_t i, size_t j) {
  *
  * Also calculates gradient of F wrt theta and stores it in gradF.
  */ 
-double calcF(double *mus, uint32_t *feats_aa, size_t seqlen,
-			double *theta_tri, double *gamma, double theta_dist, double theta_seqlen, 
-			double theta_prior, double *gradF) {
+double calcF(
+	const double *mus, 
+	const uint32_t *feats_aa, 
+	const size_t seqlen,
+	const double *theta_tri, 
+	const double *gamma, 
+	const double theta_dist, 
+	const double theta_seqlen, 
+	const double theta_prior, 
+	double *gradF) {
 
 	double F = 0;
 	double mu_ij, mu_ik, mu_jk;

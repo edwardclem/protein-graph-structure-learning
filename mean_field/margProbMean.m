@@ -1,4 +1,4 @@
-function [mus] = margProbMean(theta,N,feats,seqlen,verbose)
+function [mus] = margProbMean(theta,N,feats,seqlen,crfOpt)
 % mus = margProbMean(theta,N,feats)
 % Computes the variational paramteres for the mean-field equations, given
 % model parameters.
@@ -19,27 +19,27 @@ function [mus] = margProbMean(theta,N,feats,seqlen,verbose)
 %   mus: An length L cell array containing the variational parameters for
 %        the mean-field approximation. Each sub array mus(l) contains N(l)
 %        parameters.
-    if nargin == 4
-        verbose = 0;
+    if nargin < 4
+        crfOpt.verbose = 0;
+        crfOpt.nThreads = uint32(1);
+    end
+    if ~isa(crfOpt.nThreads, 'uint32')
+        crfOpt.nThreads = uint32(crfOpt.nThreads);
     end
 
     L = numel(feats);
-    mus = cell(L, 1);
     gamma = theta(5:end-3);
     tstart = tic;
-    reverseStr = '';
-    if verbose; fprintf('\tCalculating muhat... '); end;
-    for l = 1:L
-        mus{l} = calc_muhat(uint32(N(l)), feats{l}, seqlen(l), ...
-                        theta(1:4), gamma, theta(end-2), theta(end-1), ...
-                        theta(end));
-        if verbose          
-            msg = sprintf('%d / %d', l, L);
-            fprintf([reverseStr, msg]);
-            reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        end
+    if crfOpt.verbose; fprintf('\tCalculating muhat... '); end;
+    if (crfOpt.nThreads == 1)
+        mus = calc_muhat(N, feats, seqlen, theta(1:4), gamma, ...
+                        theta(end-2), theta(end-1), theta(end), uint32(L));
+    else
+        mus = calc_muhat_parallel(N, feats, seqlen, theta(1:4), gamma, ...
+                        theta(end-2), theta(end-1), theta(end), uint32(L), ...
+                        crfOpt.nThreads);
     end
     tstop = toc(tstart);
-    if verbose; fprintf('. Time: %0.1fs.\n', tstop); end;
+    if crfOpt.verbose; fprintf('. Time: %0.1fs.\n', tstop); end;
 end
 

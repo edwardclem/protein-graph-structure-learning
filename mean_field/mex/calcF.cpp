@@ -3,7 +3,8 @@
  * Used in mean-field CRF approximation.
  */
 #include "mex.h"
-#include <math.h>
+#include <cmath>
+#include <cstdint>
 
 #define NUM_FEATURES 217
 #define NUM_INTERACTIONS 4

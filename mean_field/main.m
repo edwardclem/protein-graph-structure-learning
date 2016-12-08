@@ -13,7 +13,7 @@ N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
 lambdaBar = 0;
 options.maxIter=1000;
 options.progTol=1e-11;
-crfOpt.verbose=1;
+crfOpt.verbose=1; % Print things while running? 
 
 % Setup inputs
 funLL = @(theta)getLlikCRFMean(theta, ss_proteins, L, N, features_aa, seqlen_all, crfOpt);

@@ -13,7 +13,7 @@
 #define CONV_TOL 0.0001
 
 // Keep a count of the total number of running threads
-volatile int n_running_threads = 0;
+volatile size_t n_running_threads = 0;
 pthread_mutex_t n_running_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Data for calc_muhat
@@ -104,9 +104,7 @@ void *calc_muhat_wrapper(void *args) {
 				data->gamma, data->theta_dist, data->theta_seqlen, 
 				data->theta_prior);
 	pthread_mutex_lock(&n_running_mutex);
-	// TODO: This does not access the global variable above
 	n_running_threads--;
-	mexPrintf("done: %lu\n", n_running_threads);
 	pthread_mutex_unlock(&n_running_mutex);
 	pthread_exit(NULL);
 }
@@ -139,7 +137,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	pthread_attr_t attr;
 	int rc;
 	void *status;
-	size_t n_running_threads = 0;
 
 	// Initialize and set thread joinable
 	pthread_attr_init(&attr);
@@ -147,7 +144,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 	// Iterate through each training example
 	for (size_t l = 0; l < L; l++) {
-		mexPrintf("l = %lu\n", l);
 		// Initialize mus array and set everything to 0.5.
 		double *mus = (double *) mxCalloc(n_mus[l], sizeof(double));
 		for (size_t i = 0; i < n_mus[l]; i++) {
@@ -172,13 +168,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		while (n_running_threads >= n_max_threads) {
 			sleep(1);
 		}
-		mexPrintf("n_running_threads: %lu\n", n_running_threads);
 
 		// Increment number of currently running threads
 		pthread_mutex_lock(&n_running_mutex);
 		n_running_threads++;
 		pthread_mutex_unlock(&n_running_mutex);
-		mexPrintf("creating thread\n");
 		
 		// Launch thread
 		rc = pthread_create(&threads[l], &attr, calc_muhat_wrapper, (void *) &mh_data[l]);
@@ -188,12 +182,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			mexErrMsgTxt(buf);
 			exit(-1);
 		}
-		mexPrintf("main: created thread\n");
 	}
 
-	// Wait until threads finish... threads are not decrementing n_running_threads properly right now
+	// Wait until threads finish
 	while (n_running_threads > 0) {
-		mexPrintf("n_running_threads: %lu\n", n_running_threads);
 		sleep(1);
 	}
 

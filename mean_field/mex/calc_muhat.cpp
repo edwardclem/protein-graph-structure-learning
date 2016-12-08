@@ -5,6 +5,7 @@
 #include "mex.h"
 #include <cmath>
 #include <string.h>
+#include <cstdint>
 
 #define NUM_ITER 20
 #define CONV_TOL 0.0001

@@ -1,6 +1,4 @@
 #!/bin/bash
-#-o ../logs/$JOB_ID.out
-#-e ../logs/$JOB_ID.err
 
 #produces a graph file from all PDB files in the given folder
 pdbfolder=../data/raw_pdb

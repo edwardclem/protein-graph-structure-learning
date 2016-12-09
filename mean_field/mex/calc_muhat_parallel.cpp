@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <pthread.h>
 #include <unistd.h>
+#include "matrix.h"
 
 #define NUM_ITER 20
 #define CONV_TOL 0.0001
@@ -129,7 +130,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	const uint32_t L = *((uint32_t *) mxGetData(prhs[8])); // Number of training examples
 	const uint32_t n_max_threads = *((uint32_t *) mxGetData(prhs[9])); // Number of threads to use
 	
-	size_t dims[2]; dims[0] = L; dims[1] = 1;
+	const mwSize dims[2] = {L, 1};
+
+
 	plhs[0] = mxCreateCellArray(2, dims); // output mus, (L x 1) cell array of double vectors
 
 	pthread_t threads[L];

@@ -35,7 +35,7 @@ llTrace(1:length(outputInfo.trace.fval)) = outputInfo.trace.fval;
 N_test = seqlen_test.*(seqlen_test - 1)/2; % Number of possible edges
 
 %% Plot results
-muhat = margProbMean(thetaML, N, features_test, seqlen_test); % change to test data
+muhat = margProbMean(thetaML, N, features_test, seqlen_test, crfOpt); % change to test data
 t_val = 1:-0.001:0.001;
 FAR = zeros(size(t_val));
 DR = zeros(size(t_val));

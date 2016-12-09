@@ -1,4 +1,4 @@
-function [] = train_model(train_data, test_data, outfile)
+function [] = train_model(train_data, test_data, outfile, nThreads)
 
 seed = 0;
 rng(seed);
@@ -16,13 +16,15 @@ N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
 lambdaBar = 0;
 options.maxIter=1000;
 options.progTol=1e-11;
-crfOpt.verbose=1;
+crfOpt.verbose=0;
+crfOpt.nThreads = nThreads; % Number of threads to use
 
 % Setup inputs
 funLL = @(theta)getLlikCRFMean(theta, ss_proteins, L, N, features_aa, seqlen_all, crfOpt);
 theta = zeros([numel(ss_proteins), 1]);
 lambdaL2 = ones(size(theta))*lambdaBar;
 llTrace = NaN(options.maxIter, 1);
+
 
 % Run Mean Field
 [thetaML,~, ~, outputInfo] = minFunc(@penalizedL2, theta, options, funLL, lambdaL2);

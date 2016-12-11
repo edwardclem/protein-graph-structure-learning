@@ -31,6 +31,9 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, crfOpt)
     if ~isa(crfOpt.nThreads, 'uint32')
         crfOpt.nThreads = uint32(crfOpt.nThreads);
     end
+    if ~isa(crfOpt.condDist, 'uint32')
+        crfOpt.condDist = uint32(crfOpt.condDist);
+    end
     
     
     % Compute joint and marginal statistics for current model
@@ -43,7 +46,7 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, crfOpt)
     for l = 1:L
         [F_l, gradF_l] = calcF(mus{l}, feats{l}, seqlen(l), ...
                             theta(1:4), gamma, theta(end-2), ...
-                            theta(end-1), theta(end));
+                            theta(end-1), theta(end), crfOpt.condDist);
         F = F + F_l;
         gradF = gradF + gradF_l;
     end
@@ -54,7 +57,9 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, crfOpt)
     
     ll = -ll;
     grad = -grad;
-    
+    % DEBUG!!
+    grad(1:4) = 0;
+    grad(end-2) = 0;
     
 end
 

@@ -26,6 +26,9 @@ function [mus] = margProbMean(theta,N,feats,seqlen,crfOpt)
     if ~isa(crfOpt.nThreads, 'uint32')
         crfOpt.nThreads = uint32(crfOpt.nThreads);
     end
+    if ~isa(crfOpt.condDist, 'uint32')
+        crfOpt.condDist = uint32(crfOpt.condDist);
+    end
 
     L = numel(feats);
     gamma = theta(5:end-3);
@@ -35,9 +38,15 @@ function [mus] = margProbMean(theta,N,feats,seqlen,crfOpt)
         mus = calc_muhat(N, feats, seqlen, theta(1:4), gamma, ...
                         theta(end-2), theta(end-1), theta(end), uint32(L));
     else
-        mus = calc_muhat_parallel(N, feats, seqlen, theta(1:4), gamma, ...
-                        theta(end-2), theta(end-1), theta(end), uint32(L), ...
-                        crfOpt.nThreads);
+%         if (crfOpt.condDist > 0)
+            mus = calc_muhat_parallel_cond(N, feats, seqlen, theta(1:4), gamma, ...
+                            theta(end-2), theta(end-1), theta(end), uint32(L), ...
+                            crfOpt.nThreads, crfOpt.condDist);
+%         else
+%             mus = calc_muhat_parallel(N, feats, seqlen, theta(1:4), gamma, ...
+%                             theta(end-2), theta(end-1), theta(end), uint32(L), ...
+%                             crfOpt.nThreads);
+%         end
     end
     tstop = toc(tstart);
     if crfOpt.verbose; fprintf('. Time: %0.1fs.\n', tstop); end;

@@ -33,7 +33,8 @@ double calcF(
 	const double theta_dist, 
 	const double theta_seqlen, 
 	const double theta_prior, 
-	double *gradF) {
+	double *gradF,
+	uint32_t condition_dist) {
 
 	double F = 0;
 	double mu_ij, mu_ik, mu_jk;
@@ -44,31 +45,38 @@ double calcF(
 	// i, j are less equals, but k is less than to deal with sum over two versus sum over three elements
 	for (size_t i = 0; i <= seqlen-2; i++) {
 		for (size_t j = i+1; j <= seqlen-1; j++) {
-			mu_ij = mus[get_idx(seqlen, i, j)];
+			//conditioning
+			if (j - i > condition_dist){
+				mu_ij = mus[get_idx(seqlen, i, j)];
 
-			// Calculation for sequence features. Depends only on mu_ij
-			//for edge ij, the amino acid indicator will be nonzero at only one location, so use that to index into gammas
-			F += mu_ij*(gamma[feats_aa[get_idx(seqlen, i, j)]] + theta_dist*(j - i) + seq_feat + theta_prior);
-			F -= (mu_ij*log(mu_ij) + (1 - mu_ij)*log(1 - mu_ij));
-			gradF[NUM_INTERACTIONS + feats_aa[get_idx(seqlen, i, j)]] += mu_ij; // aa feature
-			gradF[NUM_INTERACTIONS + NUM_AA_FEATS] += mu_ij*(j - i); // dist feature
-			gradF[NUM_INTERACTIONS + NUM_AA_FEATS + 1] += mu_ij*seqlen; // seqlen feature
-			gradF[NUM_INTERACTIONS + NUM_AA_FEATS + 2] += mu_ij; // prior
+				// Calculation for sequence features. Depends only on mu_ij
+				//for edge ij, the amino acid indicator will be nonzero at only one location, so use that to index into gammas
+				F += mu_ij*(gamma[feats_aa[get_idx(seqlen, i, j)]] + theta_dist*(j - i) + seq_feat + theta_prior);
+				F -= (mu_ij*log(mu_ij) + (1 - mu_ij)*log(1 - mu_ij));
+				gradF[NUM_INTERACTIONS + feats_aa[get_idx(seqlen, i, j)]] += mu_ij; // aa feature
+				gradF[NUM_INTERACTIONS + NUM_AA_FEATS] += mu_ij*(j - i); // dist feature
+				gradF[NUM_INTERACTIONS + NUM_AA_FEATS + 1] += mu_ij*seqlen; // seqlen feature
+				gradF[NUM_INTERACTIONS + NUM_AA_FEATS + 2] += mu_ij; // prior
 
-			// Calculation for triplet factors. Depends on mu_ij, mu_ik, mu_jk
-			for (size_t k = j+1; k < seqlen; k++) {
-				mu_ik = mus[get_idx(seqlen, i, k)];
-				mu_jk = mus[get_idx(seqlen, j, k)];
-				prob_0 = (1 - mu_ij)*(1 - mu_ik)*(1 - mu_jk);
-				prob_1 = mu_ij*(1 - mu_ik)*(1 - mu_jk) + (1 - mu_ij)*mu_ik*(1 - mu_jk) + (1 - mu_ij)*(1 - mu_ik)*mu_jk;
-				prob_2 = mu_ij*mu_ik*(1 - mu_jk) + mu_ij*(1 - mu_ik)*mu_jk + (1 - mu_ij)*mu_ik*mu_jk;
-				prob_3 = mu_ij*mu_ik*mu_jk;
-				F += theta_tri[0]*prob_0 + theta_tri[1]*prob_1 + theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
-				gradF[0] += prob_0;
-				gradF[1] += prob_1;
-				gradF[2] += prob_2;
-				gradF[3] += prob_3;
+				// Calculation for triplet factors. Depends on mu_ij, mu_ik, mu_jk
+				for (size_t k = j+1; k < seqlen; k++) {
+					if (k - i > condition_dist){ //if all three are too close, then don't do anything
+						mu_ik = mus[get_idx(seqlen, i, k)];
+						mu_jk = mus[get_idx(seqlen, j, k)];
+						prob_0 = (1 - mu_ij)*(1 - mu_ik)*(1 - mu_jk);
+						prob_1 = mu_ij*(1 - mu_ik)*(1 - mu_jk) + (1 - mu_ij)*mu_ik*(1 - mu_jk) + (1 - mu_ij)*(1 - mu_ik)*mu_jk;
+						prob_2 = mu_ij*mu_ik*(1 - mu_jk) + mu_ij*(1 - mu_ik)*mu_jk + (1 - mu_ij)*mu_ik*mu_jk;
+						prob_3 = mu_ij*mu_ik*mu_jk;
+						F += theta_tri[0]*prob_0 + theta_tri[1]*prob_1 + theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
+						gradF[0] += prob_0;
+						gradF[1] += prob_1;
+						gradF[2] += prob_2;
+						gradF[3] += prob_3;
+					}
+
+				}
 			}
+			
 		}
 	}
 
@@ -78,8 +86,8 @@ double calcF(
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
-	if (nrhs != 8)
-		mexErrMsgTxt("calcF: Requires eight arguments.");
+	if (nrhs != 9)
+		mexErrMsgTxt("calcF: Requires nine arguments.");
 	if ( (!mxIsClass(prhs[1], "uint32")) || (!mxIsClass(prhs[2], "uint32")) )
 		mexErrMsgTxt("calcF: Arguments 2 and 3 must be UINT32.");
 
@@ -91,6 +99,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	double theta_dist = *(mxGetPr(prhs[5]));
 	double theta_seqlen = *(mxGetPr(prhs[6]));
 	double theta_prior = *(mxGetPr(prhs[7]));
+	const uint32_t condition_dist = *((uint32_t *) mxGetData(prhs[8]));
+
+	// char buf[100];
+	// sprintf(buf, "Condition distance: %u \n", condition_dist);
+
+	// mexPrintf(buf);
+
 
 	double *gradF = (double *) mxCalloc(NUM_FEATURES, sizeof(double));
 	for (size_t i = 0; i < NUM_FEATURES; i++) {
@@ -100,7 +115,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	plhs[0] = mxCreateDoubleMatrix(1, 1, mxREAL);
 	double *F = mxGetPr(plhs[0]);
 	(*F) = calcF(mus, feats_aa, seqlen, theta_tri, gamma, 
-					theta_dist, theta_seqlen, theta_prior, gradF);
+					theta_dist, theta_seqlen, theta_prior, gradF, condition_dist);
 	plhs[1] = mxCreateDoubleMatrix(NUM_FEATURES, 1, mxREAL);
 	mxSetData(plhs[1], gradF);
 }

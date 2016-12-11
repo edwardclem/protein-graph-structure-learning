@@ -26,17 +26,17 @@ theta = zeros([numel(ss_proteins), 1]);
 lambdaL2 = ones(size(theta))*lambdaBar;
 llTrace = NaN(options.maxIter, 1);
 
-
+tic;
 % Run Mean Field
 [thetaML,~, ~, outputInfo] = minFunc(@penalizedL2, theta, options, funLL, lambdaL2);
 llTrace(1:length(outputInfo.trace.fval)) = outputInfo.trace.fval;
-
+toc
 %%load testing data
 [~, features_test, seqlen_test, gt] = load_data(test_data);
 N_test = seqlen_test.*(seqlen_test - 1)/2; % Number of possible edges
 
 % Plot results
-muhat = margProbMean(thetaML, N, features_test, seqlen_test, crfOpt); % change to test data
+muhat = margProbMean(thetaML, N_test, features_test, seqlen_test, crfOpt); % change to test data
 
 %using built-in ROC functions
 
@@ -45,5 +45,4 @@ all_gt = vertcat(gt{1:end});
 
 [X, Y, T, AUC] = perfcurve(all_gt, all_mus, 1);
 save(outfile, 'X', 'Y', 'T', 'AUC', 'thetaML',);
-
 end

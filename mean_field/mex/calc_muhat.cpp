@@ -53,7 +53,6 @@ void calc_muhat(
 				// for edge ij, the amino acid indicator will be nonzero at only one location, use that to index gammas
 				// Also distance feature (note: j - i = abs(i - j) b/c of the way the loop works) and prior
 				alpha += gamma[feats_aa[mu_idx]] + (j - i)*theta_dist + theta_prior;
-
 				// Calculation for triplet factors. Depends on mu_ik, mu_jk.
 				for (size_t k = 0; k < seqlen; k++) {
 					if ((k == i) || (k == j))
@@ -78,6 +77,7 @@ void calc_muhat(
 			break;
 		diff = 0;
 	}
+
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {

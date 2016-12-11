@@ -3,7 +3,7 @@ rng(seed);
 
 %% Load data, split into train + test
 directory = '../data/summed_suffstats/test';
-[ss_proteins, features_aa, seqlen_all, gt] = load_data(directory);
+[ss_proteins, features_aa, seqlen_all, gt] = load_data_SGD(directory);
 L = numel(features_aa); % seqlen variable
 N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
 
@@ -14,18 +14,12 @@ lambdaBar = 0;
 options.maxIter = 1000;
 options.progTol = 1e-11;
 crfOpt.verbose = 0; % Print things while running? 
-crfOpt.nThreads = 4; % Number of threads to use
-
-% Setup inputs
-funLL = @(theta)getLlikCRFMean(theta, ss_proteins, L, N, features_aa, seqlen_all, crfOpt);
-theta = zeros([numel(ss_proteins), 1]);
-lambdaL2 = ones(size(theta))*lambdaBar;
-llTrace = NaN(options.maxIter, 1);
+crfOpt.nThreads = 1; % Number of threads to use
 
 % Run Mean Field
-fprintf('Starting Gradient Descent Mean Field CRF\n');
+fprintf('Starting Stochastic Gradient Descent Mean Field CRF\n');
 tstart = tic;
-[thetaML,~, ~, outputInfo] = minFunc(@penalizedL2, theta, options, funLL, lambdaL2);
+[thetaML] = minimizeLL_SGD(ss_proteins, L, N, features_aa, seqlen_all, crfOpt);
 tstop = toc(tstart);
 fprintf('Gradient Descent Elapsed in %0.1fs.\n', tstop);
 llTrace(1:length(outputInfo.trace.fval)) = outputInfo.trace.fval;

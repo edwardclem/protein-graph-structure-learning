@@ -21,10 +21,13 @@ function [mus] = margProbMean(theta,N,feats,seqlen,crfOpt)
 %        parameters.
     if nargin < 4
         crfOpt.verbose = 0;
-        crfOpt.nThreads = uint32(1);
+        crfOpt.nThreads = int32(1);
     end
-    if ~isa(crfOpt.nThreads, 'uint32')
-        crfOpt.nThreads = uint32(crfOpt.nThreads);
+    if ~isa(crfOpt.nThreads, 'int32')
+        crfOpt.nThreads = int32(crfOpt.nThreads);
+    end
+    if ~isa(crfOpt.condDist, 'int32')
+        crfOpt.condDist = int32(crfOpt.condDist);
     end
 
     L = numel(feats);
@@ -32,12 +35,18 @@ function [mus] = margProbMean(theta,N,feats,seqlen,crfOpt)
     tstart = tic;
     if crfOpt.verbose; fprintf('\tCalculating muhat... '); end;
     if (crfOpt.nThreads == 1)
-        mus = calc_muhat(N, feats, seqlen, theta(1:4), gamma, ...
-                        theta(end-2), theta(end-1), theta(end), uint32(L));
+        mus = calc_muhat(int32(N), feats, int32(seqlen), theta(1:4), gamma, ...
+                        theta(end-2), theta(end-1), theta(end), int32(L));
     else
-        mus = calc_muhat_parallel(N, feats, seqlen, theta(1:4), gamma, ...
-                        theta(end-2), theta(end-1), theta(end), uint32(L), ...
-                        crfOpt.nThreads);
+%         if (crfOpt.condDist > 0)
+            mus = calc_muhat_parallel_cond(int32(N), feats, int32(seqlen), theta(1:4), gamma, ...
+                            theta(end-2), theta(end-1), theta(end), int32(L), ...
+                            crfOpt.nThreads, crfOpt.condDist);
+%         else
+%             mus = calc_muhat_parallel(N, feats, seqlen, theta(1:4), gamma, ...
+%                             theta(end-2), theta(end-1), theta(end), int32(L), ...
+%                             crfOpt.nThreads);
+%         end
     end
     tstop = toc(tstart);
     if crfOpt.verbose; fprintf('. Time: %0.1fs.\n', tstop); end;

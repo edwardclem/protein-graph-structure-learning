@@ -59,7 +59,7 @@ def features_from_pdb(filename, outfolder, dist_cutoff):
         seq_num2, type2, coord2 = pair[1]
 
         #ignore edges smaller than the cutoff
-        if abs(seq_num1 - seq_num2) > dist_cutoff:
+        if abs(int(seq_num1) - int(seq_num2)) > dist_cutoff:
             aa_pair = AA_IDX[(min(type1, type2), max(type1, type2))]
 
             # idx*(idx + 1)/2 is the offset for dealing with upper triangular matrix

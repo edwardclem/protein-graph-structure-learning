@@ -44,5 +44,5 @@ all_mus = vertcat(muhat{1:end});
 all_gt = vertcat(gt{1:end});
 
 [X, Y, T, AUC] = perfcurve(all_gt, all_mus, 1);
-save(outfile, 'X', 'Y', 'T', 'AUC', 'thetaML',);
+save(outfile, 'X', 'Y', 'T', 'AUC', 'thetaML');
 end

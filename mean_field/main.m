@@ -2,7 +2,7 @@ seed = 0;
 rng(seed);
 
 %% Load data, split into train + test
-directory = '../data/summed_suffstats/test';
+directory = 'data/test_oneprot';
 [ss_proteins, features_aa, seqlen_all, gt] = load_data(directory);
 L = numel(features_aa); % seqlen variable
 N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
@@ -26,13 +26,13 @@ llTrace = NaN(options.maxIter, 1);
 % Run Mean Field
 fprintf('Starting Gradient Descent Mean Field CRF\n');
 tstart = tic;
-[thetaML_all,~, ~, outputInfo] = minFunc(@penalizedL2, theta, options, funLL, lambdaL2);
+[thetaML,~, ~, outputInfo] = minFunc(@penalizedL2, theta, options, funLL, lambdaL2);
 tstop = toc(tstart);
 fprintf('Gradient Descent Elapsed in %0.1fs.\n', tstop);
 llTrace(1:length(outputInfo.trace.fval)) = outputInfo.trace.fval;
 
 %% Plot results
-muhat = margProbMean(thetaML_all, N, features_aa, seqlen_all, crfOpt); % change to test data
+muhat = margProbMean(thetaML, N, features_aa, seqlen_all, crfOpt); % change to test data
 
 %%
 t_val = 1:-0.001:0.001;
@@ -41,20 +41,20 @@ all_mus = vertcat(muhat{1:end});
 all_gt = vertcat(gt{1:end});
 
 [X, Y, T, AUC] = perfcurve(all_gt, all_mus, 1);
-FAR = zeros(size(t_val));
-DR = zeros(size(t_val));
-for l = 1:L
-    DR_l = arrayfun(@(t) nnz((muhat{l} > t) & (gt{l} == 1))/nnz(gt{l} == 1), t_val);
-    FAR_l = arrayfun(@(t) nnz((muhat{l} > t) & (gt{l} == 0))/nnz(gt{l} == 0), t_val);
-    %figure(l)
-    %plot(FAR_l, DR_l);
-    DR = DR + DR_l;
-    FAR = FAR + FAR_l;
-end
-DR = DR/L;
-FAR = FAR/L;
+% FAR = zeros(size(t_val));
+% DR = zeros(size(t_val));
+% for l = 1:L
+%     DR_l = arrayfun(@(t) nnz((muhat{l} > t) & (gt{l} == 1))/nnz(gt{l} == 1), t_val);
+%     FAR_l = arrayfun(@(t) nnz((muhat{l} > t) & (gt{l} == 0))/nnz(gt{l} == 0), t_val);
+%     %figure(l)
+%     %plot(FAR_l, DR_l);
+%     DR = DR + DR_l;
+%     FAR = FAR + FAR_l;
+% end
+% DR = DR/L;
+% FAR = FAR/L;
 figure;
 hold on
-plot(FAR, DR)
+% plot(FAR, DR)
 plot(X, Y);
 plot(0:0.1:1, 0:0.1:1);

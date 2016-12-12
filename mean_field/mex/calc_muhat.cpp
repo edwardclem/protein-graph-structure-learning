@@ -12,9 +12,9 @@
 #define CONV_TOL 0.0001
 
 // Get index of mu_ij given seqence length. Have to offset for upper triangular matrix
-inline size_t get_idx(size_t seqlen, size_t i, size_t j) {
-	size_t first = fmin(i,j);
-	size_t second = fmax(i,j);
+inline int get_idx(int seqlen, int i, int j) {
+	int first = fmin(i,j);
+	int second = fmax(i,j);
 	return first*seqlen - (first+1)*(first+2)/2 + second;
 }
 
@@ -27,23 +27,23 @@ inline size_t get_idx(size_t seqlen, size_t i, size_t j) {
  */
 void calc_muhat(
 	double *mus, 
-	const uint32_t *feats_aa, 
-	const size_t seqlen,
+	const int *feats_aa, 
+	const int seqlen,
 	const double *theta_tri, 
 	const double *gamma, 
 	const double theta_dist, 
 	const double theta_seqlen,
 	const double theta_prior) {
 
-	size_t mu_idx;
+	int mu_idx;
 	double alpha;
 	double mu_ik, mu_jk;
 	double prob_0, prob_1, prob_2, prob_3;
 	double diff = 0;
 	// coordinate ascent for NUM_ITER iterations
-	for (size_t iter = 0; iter < NUM_ITER; iter++) {
-		for (size_t i = 0; i <= seqlen - 2; i++) {
-			for (size_t j = i+1; j <= seqlen - 1; j++) {
+	for (int iter = 0; iter < NUM_ITER; iter++) {
+		for (int i = 0; i <= seqlen - 2; i++) {
+			for (int j = i+1; j <= seqlen - 1; j++) {
 
 				mu_idx = get_idx(seqlen, i, j);
 				alpha = 0;
@@ -54,7 +54,7 @@ void calc_muhat(
 				// Also distance feature (note: j - i = abs(i - j) b/c of the way the loop works) and prior
 				alpha += gamma[feats_aa[mu_idx]] + (j - i)*theta_dist + theta_prior;
 				// Calculation for triplet factors. Depends on mu_ik, mu_jk.
-				for (size_t k = 0; k < seqlen; k++) {
+				for (int k = 0; k < seqlen; k++) {
 					if ((k == i) || (k == j))
 						continue;
 
@@ -88,31 +88,31 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		 (!mxIsClass(prhs[8], "uint32")) )
 		mexErrMsgTxt("calc_muhat: Arguments 1 - 3 must be UINT32.");
 
-	const uint32_t *n_mus = (uint32_t *) mxGetData(prhs[0]); // L - dimension vector
-	const mxArray *feats_aa = prhs[1]; // (L x 1) cell array of uint32_t vectors
-	const uint32_t *seqlen = (uint32_t *) mxGetData(prhs[2]); // L - dimension vector
+	const int *n_mus = (int *) mxGetData(prhs[0]); // L - dimension vector
+	const mxArray *feats_aa = prhs[1]; // (L x 1) cell array of int vectors
+	const int *seqlen = (int *) mxGetData(prhs[2]); // L - dimension vector
 	const double *theta_tri = mxGetPr(prhs[3]); // 4 dimension vector of three factor weights
 	const double *gamma = mxGetPr(prhs[4]); // 20*(20+1)/2 dimension vector of amino acid weights
 	const double theta_dist = *(mxGetPr(prhs[5])); // distance weight
 	const double theta_seqlen = *(mxGetPr(prhs[6])); // seqlen weight
 	const double theta_prior = *(mxGetPr(prhs[7])); // prior weight
-	const uint32_t L = *((uint32_t *) mxGetData(prhs[8])); // Number of training examples
+	const int L = *((int *) mxGetData(prhs[8])); // Number of training examples
 	
-	//size_t dims[2]; dims[0] = L; dims[1] = 1;
-	const mwSize dims[2] = {L, 1};
-	//const uint32_t dims[2] = {L, 1};
+	//int dims[2]; dims[0] = L; dims[1] = 1;
+	const mwSize dims[2] = {(mwSize)L, 1};
+	//const int dims[2] = {L, 1};
 	plhs[0] = mxCreateCellArray(2, dims); // output mus, (L x 1) cell array of double vectors
 
 	// Iterate through each training example
-	for (size_t l = 0; l < L; l++) {
+	for (int l = 0; l < L; l++) {
 		// Initialize mus array and set everything to 0.5.
 		double *mus = (double *) mxCalloc(n_mus[l], sizeof(double));
-		for (size_t i = 0; i < n_mus[l]; i++) {
+		for (int i = 0; i < n_mus[l]; i++) {
 			mus[i] = 0.5;
 		}
 
 		// Obtain correct feats array
-		const uint32_t *feats_aa_l = (uint32_t *) mxGetData(mxGetCell(feats_aa, l));
+		const int *feats_aa_l = (int *) mxGetData(mxGetCell(feats_aa, l));
 
 		// Run calc_muhat
 		calc_muhat(mus, feats_aa_l, seqlen[l], theta_tri, gamma,

@@ -26,13 +26,13 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, crfOpt)
         crfOpt.verbose = 0;
     end
     if ~isfield(crfOpt, 'nThreads')
-        crfOpt.nThreads = uint32(1);
+        crfOpt.nThreads = int32(1);
     end
-    if ~isa(crfOpt.nThreads, 'uint32')
-        crfOpt.nThreads = uint32(crfOpt.nThreads);
+    if ~isa(crfOpt.nThreads, 'int32')
+        crfOpt.nThreads = int32(crfOpt.nThreads);
     end
-    if ~isa(crfOpt.condDist, 'uint32')
-        crfOpt.condDist = uint32(crfOpt.condDist);
+    if ~isa(crfOpt.condDist, 'int32')
+        crfOpt.condDist = int32(crfOpt.condDist);
     end
     
     
@@ -58,8 +58,8 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, crfOpt)
     ll = -ll;
     grad = -grad;
     % DEBUG!!
-    grad(1:4) = 0;
-    grad(end-2) = 0;
+    %grad(1:4) = 0;
+    %grad(end-2) = 0;
     
 end
 

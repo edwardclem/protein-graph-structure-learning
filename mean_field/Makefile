@@ -1,7 +1,7 @@
 include Makefile.conf
 
 # Define build targets
-MATLAB_TARGETS: build/calcF$(ME) build/calc_muhat$(ME) build/calc_muhat_parallel$(ME) build/calc_muhat_parallel_cond$(ME)
+MATLAB_TARGETS: build/calcF$(ME) build/calc_muhat$(ME) build/calc_muhat_parallel$(ME) build/calc_muhat_parallel_cond$(ME) build/calcPll$(ME)
 TARGETS:=$(TARGETS) $(MATLAB_TARGETS)
 
 MEX:=$(MEX) $(MEXFLAGS) $(MEXINC) $(MEXLIB) $(MEXLIBS)
@@ -29,6 +29,9 @@ build/calc_muhat_parallel$(ME) : mex/calc_muhat_parallel.cpp
 build/calc_muhat_parallel_cond$(ME) : mex/calc_muhat_parallel_cond.cpp
 	 $(MEX) $(MEXOUTFLAG) $@ mex/calc_muhat_parallel_cond.cpp
 
+build/calcPll$(ME) : mex/calcPll.cpp
+	$(MEX) $(MEXOUTFLAG) $@ mex/calcPll.cpp
+	
 # CLEAN
 ########
 .PHONY : clean

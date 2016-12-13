@@ -56,31 +56,35 @@ double calcPll(
 			//conditioning
 			//if (j - i > condition_dist){
 
-				// Calculation for sequence features. Depends only on mu_ij
-				//for edge ij, the amino acid indicator will be nonzero at only one location, so use that to index into gammas
-				alpha_ij = (gamma[feats_aa[get_idx(seqlen, i, j)]] + theta_dist*(j - i) + seq_feat + theta_prior);
-				beta_ij = 0;
+			// Calculation for sequence features. Depends only on mu_ij
+			//for edge ij, the amino acid indicator will be nonzero at only one location, so use that to index into gammas
+			alpha_ij = (gamma[feats_aa[get_idx(seqlen, i, j)]] + theta_dist*(j - i) + seq_feat + theta_prior);
+			beta_ij = 0;
 
-				for (int k = 0; k < seqlen; k++){
-					if ((k == i) || (k == j))
-						continue;
+			for (int k = 0; k < seqlen; k++){
+				if ((k == i) || (k == j))
+					continue;
 
-					x_jk = x[get_idx(seqlen, j, k)];
-					x_ik = x[get_idx(seqlen, i, k)];
+				x_jk = x[get_idx(seqlen, j, k)];
+				x_ik = x[get_idx(seqlen, i, k)];
 
-					if (x_ik + x_jk == 2) {
-						beta_ij += theta_tri[2];
-						alpha_ij += theta_tri[3];
-						num_present[2] += 1;
-						num_present[3] += 1;
-					}
+				if (x_ik + x_jk == 2) {
+					beta_ij += theta_tri[2];
+					alpha_ij += theta_tri[3];
+					num_present[2] += 1;
+					num_present[3] += 1;
+				} else if (x_ik + x_jk == 1) {
+					alpha_ij += theta_tri[2];
+					num_present[2] += 1;
 				}
+			}
 
 			a_plus_b = exp(alpha_ij) + exp(beta_ij);
+			//mexPrintf("%0.2f, alpha: %0.2f, beta: %0.2f\n", a_plus_b, alpha_ij, beta_ij);
 			Pll +=  log(a_plus_b);
 
-			for (int n_edge = 2; n_edge < 3; n_edge++){
-				gradPll[n_edge] = num_present[n_edge]/a_plus_b;
+			for (int n_edge = 2; n_edge < 4; n_edge++){
+				gradPll[n_edge] += num_present[n_edge]/a_plus_b;
 				num_present[n_edge] = 0; //reset to zero
 			}
 

@@ -54,6 +54,7 @@ function [ ll,grad ] = getLlikCRFPll(theta, gt, ss, L, N, feats, seqlen, crfOpt)
     grad = ss - gradPll;
     grad(1:2) = 0;
     disp([ss(3:4) gradPll(3:4)])
+    %keyboard
     if crfOpt.verbose; fprintf('done. Time: %0.1fs. GradVal: %0.3f\n', tstop, norm(grad)); end;
     
     ll = -ll;

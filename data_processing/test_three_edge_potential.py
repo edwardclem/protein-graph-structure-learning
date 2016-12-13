@@ -27,13 +27,17 @@ def potential_test(filename):
 
 def get_three_factor_stats(edges, seqlen, cutoff):
 	edge_density = np.zeros(4, dtype=int)
-	for (first, second, third) in combinations(range(seqlen), 3):
-		#if all three are observed, ignore
-		if not((first - third) < cutoff and (first - second) < cutoff and (first - third) < cutoff):
-			num_present = int((first, second) in edges)
-			num_present += int((first, third) in edges)
-			num_present += int((second, third) in edges)
-			edge_density[num_present] += 1
+	for (first, second) in combinations(range(seqlen), 2):
+		for third in range(seqlen):
+			if (first == third) or (second == third):
+				continue
+			#if all three are observed, ignore
+			if not(abs(first - third) < cutoff and abs(first - second) < cutoff and abs(first - third) < cutoff):
+				#print (first, third)
+				num_present = int((first, second) in edges)
+				num_present += int((first, third) in edges)
+				num_present += int((second, third) in edges)
+				edge_density[num_present] += 1
 	return edge_density
 
 def test_on_files(file_list, outfile=None):

@@ -2,7 +2,7 @@ seed = 0;
 rng(seed);
 
 %% Load data, split into train + test
-directory = 'data/data_parallel';
+directory = '../data/data_parallel';
 [ss_proteins, features_aa, seqlen_all, gt] = load_data(directory);
 L = numel(features_aa); % seqlen variable
 N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
@@ -12,7 +12,8 @@ N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
 % Options
 lambdaBar = 0;
 options.maxIter = 1000;
-options.progTol = 1e-11;
+options.progTol = 1e-6;
+options.DerivativeCheck = 'off';
 crfOpt.verbose = 0; % Print things while running? 
 crfOpt.nThreads = 4; % Number of threads to use
 crfOpt.condDist = 0; % condition on edges with sequence distance less than this

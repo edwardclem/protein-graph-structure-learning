@@ -56,47 +56,42 @@ double calcPll(
 			//conditioning
 			//if (j - i > condition_dist){
 
-				// Calculation for sequence features. Depends only on mu_ij
-				//for edge ij, the amino acid indicator will be nonzero at only one location, so use that to index into gammas
-				alpha_ij = (gamma[feats_aa[get_idx(seqlen, i, j)]] + theta_dist*(j - i) + seq_feat + theta_prior);
-				beta_ij = 0;
+			// Calculation for sequence features. Depends only on mu_ij
+			//for edge ij, the amino acid indicator will be nonzero at only one location, so use that to index into gammas
+			alpha_ij = (gamma[feats_aa[get_idx(seqlen, i, j)]] + theta_dist*(j - i) + seq_feat + theta_prior);
+			beta_ij = 0;
 
-				// for (int k = 0; k < seqlen; k++){
-				// 	if ((k == i) || (k == j))
-				// 		continue;
+			for (int k = 0; k < seqlen; k++){
+				if ((k == i) || (k == j))
+					continue;
 
-				// 	x_jk = x[get_idx(seqlen, j, k)];
-				// 	x_ik = x[get_idx(seqlen, i, k)];
+				x_jk = x[get_idx(seqlen, j, k)];
+				x_ik = x[get_idx(seqlen, i, k)];
 
-				// 	num_present_beta = x_jk + x_ik; //if x_ij = 0
-				// 	num_present_alpha = 1 + num_present_beta; //if x_ij = 1
+				if (x_ik + x_jk == 2) {
+					beta_ij += theta_tri[2];
+					alpha_ij += theta_tri[3];
+					num_present[2] += 1;
+					num_present[3] += 1;
+				} else if (x_ik + x_jk == 1) {
+					alpha_ij += theta_tri[2];
+					num_present[2] += 1;
+				}
+			}
 
-
-				// 	alpha_ij += theta_tri[num_present_alpha];
-				// 	beta_ij += theta_tri[num_present_beta];
-				// 	num_present[num_present_alpha] += 1;
-				// 	num_present[num_present_beta] += 1;
-				// }
-
-			a_plus_b = exp(alpha_ij); //+ exp(beta_ij);
+			a_plus_b = exp(alpha_ij) + exp(beta_ij);
+			//mexPrintf("%0.2f, alpha: %0.2f, beta: %0.2f\n", a_plus_b, alpha_ij, beta_ij);
 			Pll +=  log(a_plus_b);
 
-			// for (int n_edge = 0; n_edge < 3; n_edge++){
-			// 	gradPll[n_edge] = num_present[n_edge]/a_plus_b;
-			// 	num_present[n_edge] = 0; //reset to zero
-			// }
-			// gradPll[0] = num_present[0]/a_plus_b;
-			// gradPll[1] = num_present[1]/a_plus_b;
-			// gradPll[2] = num_present[2]/a_plus_b;
-			// gradPll[3] = num_present[3]/a_plus_b;
+			for (int n_edge = 2; n_edge < 4; n_edge++){
+				gradPll[n_edge] += num_present[n_edge]/a_plus_b;
+				num_present[n_edge] = 0; //reset to zero
+			}
 
 			gradPll[NUM_INTERACTIONS + feats_aa[get_idx(seqlen, i, j)]] += 1/a_plus_b; // aa feature
 			gradPll[NUM_INTERACTIONS + NUM_AA_FEATS] += ((double)(j - i))/a_plus_b; // dist feature
 			gradPll[NUM_INTERACTIONS + NUM_AA_FEATS + 1] += seqlen/a_plus_b; // seqlen feature
 			gradPll[NUM_INTERACTIONS + NUM_AA_FEATS + 2] += 1/a_plus_b; // prior
-
-
-			
 		}
 	}
 

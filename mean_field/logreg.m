@@ -4,7 +4,7 @@ seed = 0;
 rng(seed);
 
 %% Load data, split into train + test
-directory = 'data/data_parallel';
+directory = '../data/data_parallel';
 [ss_proteins, features_aa, seqlen_all, gt] = load_data(directory);
 L = numel(features_aa); % seqlen variable
 N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
@@ -49,6 +49,7 @@ scores = glmval(b, all_vec, 'logit');
 [X, Y, T, AUC] = perfcurve(all_gt, scores, 1);
 disp(AUC);
 figure(1);
-plot(X, Y);
+hold on
+plot(X, Y, 'm', 'LineWidth', 2);
 
 

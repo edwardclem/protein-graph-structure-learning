@@ -2,7 +2,7 @@ seed = 0;
 rng(seed);
 
 %% Load data, split into train + test
-directory = '../data/summed_suffstats/test';
+directory = '../data/data_parallel';
 [ss_proteins, features_aa, seqlen_all, gt] = load_data_SGD(directory);
 L = numel(features_aa); % seqlen variable
 N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
@@ -14,7 +14,8 @@ lambdaBar = 0;
 options.maxIter = 1000;
 options.progTol = 1e-11;
 crfOpt.verbose = 0; % Print things while running? 
-crfOpt.nThreads = 1; % Number of threads to use
+crfOpt.nThreads = 4; % Number of threads to use
+crfOpt.condDist = 0;
 
 % Run Mean Field
 fprintf('Starting Stochastic Gradient Descent Mean Field CRF\n');

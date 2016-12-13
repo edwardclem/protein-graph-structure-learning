@@ -78,9 +78,11 @@ void calc_muhat(
 
 					// for edge ij, the amino acid indicator will be nonzero at only one location, use that to index gammas
 					// Also distance feature (note: j - i = abs(i - j) b/c of the way the loop works) and prior
+					// DEBUG!!
 					alpha += gamma[feats_aa[mu_idx]] + (j - i)*theta_dist + theta_prior;
 
 					// Calculation for triplet factors. Depends on mu_ik, mu_jk.
+					
 					for (int k = 0; k < seqlen; k++) {
 						if ((k == i) || (k == j))
 							continue;
@@ -94,7 +96,9 @@ void calc_muhat(
 						prob_3 = mu_ik*mu_jk;
 
 						alpha += theta_tri[0]*prob_0 + theta_tri[1]*prob_1 + theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
+						//alpha += theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
 					}
+					
 					alpha = exp(alpha);
 					diff += std::abs(mus[mu_idx] - (alpha / (1 + alpha)));
 					mus[mu_idx] = alpha / (1 + alpha);

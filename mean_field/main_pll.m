@@ -35,13 +35,14 @@ llTrace(1:length(outputInfo.trace.fval)) = outputInfo.trace.fval;
 %% Plot results
 muhat = margProbMean(thetaTest, N, features_aa, seqlen_all, crfOpt); % change to test data
 
-%%
+
 t_val = 1:-0.001:0.001;
 
 all_mus = vertcat(muhat{1:end});
 all_gt = vertcat(gt{1:end});
 
 [X, Y, T, AUC] = perfcurve(all_gt,  all_mus, 1);
+disp(AUC)
 load logitROC.mat
 figure(1);
 hold on

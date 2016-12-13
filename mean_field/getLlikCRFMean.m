@@ -28,6 +28,9 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, crfOpt)
     if ~isfield(crfOpt, 'nThreads')
         crfOpt.nThreads = int32(1);
     end
+    if ~isfield(crfOpt, 'condDist')
+        crfOpt.condDist = int32(0);
+    end
     if ~isa(crfOpt.nThreads, 'int32')
         crfOpt.nThreads = int32(crfOpt.nThreads);
     end

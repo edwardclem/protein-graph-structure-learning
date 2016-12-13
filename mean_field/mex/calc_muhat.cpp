@@ -54,6 +54,7 @@ void calc_muhat(
 				// Also distance feature (note: j - i = abs(i - j) b/c of the way the loop works) and prior
 				alpha += gamma[feats_aa[mu_idx]] + (j - i)*theta_dist + theta_prior;
 				// Calculation for triplet factors. Depends on mu_ik, mu_jk.
+				
 				for (int k = 0; k < seqlen; k++) {
 					if ((k == i) || (k == j))
 						continue;

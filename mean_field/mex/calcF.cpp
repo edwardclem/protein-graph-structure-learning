@@ -51,30 +51,36 @@ double calcF(
 
 				// Calculation for sequence features. Depends only on mu_ij
 				//for edge ij, the amino acid indicator will be nonzero at only one location, so use that to index into gammas
-				F += mu_ij*(gamma[feats_aa[get_idx(seqlen, i, j)]] + theta_dist*(j - i) + seq_feat + theta_prior);
+				// DEBUG!!
+				//F += mu_ij*(gamma[feats_aa[get_idx(seqlen, i, j)]] + theta_dist*(j - i) + seq_feat + theta_prior);
 				F -= (mu_ij*log(mu_ij) + (1 - mu_ij)*log(1 - mu_ij));
-				gradF[NUM_INTERACTIONS + feats_aa[get_idx(seqlen, i, j)]] += mu_ij; // aa feature
-				gradF[NUM_INTERACTIONS + NUM_AA_FEATS] += mu_ij*(j - i); // dist feature
-				gradF[NUM_INTERACTIONS + NUM_AA_FEATS + 1] += mu_ij*seqlen; // seqlen feature
-				gradF[NUM_INTERACTIONS + NUM_AA_FEATS + 2] += mu_ij; // prior
+				//gradF[NUM_INTERACTIONS + feats_aa[get_idx(seqlen, i, j)]] += mu_ij; // aa feature
+				//gradF[NUM_INTERACTIONS + NUM_AA_FEATS] += mu_ij*(j - i); // dist feature
+				//gradF[NUM_INTERACTIONS + NUM_AA_FEATS + 1] += mu_ij*seqlen; // seqlen feature
+				//gradF[NUM_INTERACTIONS + NUM_AA_FEATS + 2] += mu_ij; // prior
 
 				// Calculation for triplet factors. Depends on mu_ij, mu_ik, mu_jk
+				
 				for (int k = j+1; k < seqlen; k++) {
 					if (k - i > condition_dist){ //if all three are too close, then don't do anything
 						mu_ik = mus[get_idx(seqlen, i, k)];
 						mu_jk = mus[get_idx(seqlen, j, k)];
-						prob_0 = (1 - mu_ij)*(1 - mu_ik)*(1 - mu_jk);
-						prob_1 = mu_ij*(1 - mu_ik)*(1 - mu_jk) + (1 - mu_ij)*mu_ik*(1 - mu_jk) + (1 - mu_ij)*(1 - mu_ik)*mu_jk;
+						//prob_0 = (1 - mu_ij)*(1 - mu_ik)*(1 - mu_jk);
+						//prob_1 = mu_ij*(1 - mu_ik)*(1 - mu_jk) + (1 - mu_ij)*mu_ik*(1 - mu_jk) + (1 - mu_ij)*(1 - mu_ik)*mu_jk;
 						prob_2 = mu_ij*mu_ik*(1 - mu_jk) + mu_ij*(1 - mu_ik)*mu_jk + (1 - mu_ij)*mu_ik*mu_jk;
 						prob_3 = mu_ij*mu_ik*mu_jk;
-						F += theta_tri[0]*prob_0 + theta_tri[1]*prob_1 + theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
-						gradF[0] += prob_0;
-						gradF[1] += prob_1;
+						
+						//F += theta_tri[0]*prob_0 + theta_tri[1]*prob_1 + theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
+						F += theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
+						//gradF[0] += prob_0;
+						//gradF[1] += prob_1;
 						gradF[2] += prob_2;
 						gradF[3] += prob_3;
+						
 					}
 
 				}
+				
 			}
 			
 		}

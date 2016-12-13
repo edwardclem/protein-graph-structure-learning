@@ -68,6 +68,6 @@ all_gt_test = double(vertcat(gt_test{:}));
 scores = glmval(b, all_vec_test, 'logit');
 
 [X, Y, T, AUC] = perfcurve(all_gt_test, scores, 1);
-save(outfile, 'X', 'Y', 'T', 'AUC');
+save(outfile, 'X', 'Y', 'T', 'AUC', 'b');
 end
 

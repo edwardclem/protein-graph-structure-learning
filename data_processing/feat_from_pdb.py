@@ -67,13 +67,15 @@ def features_from_pdb(filename, outfolder, dist_cutoff):
 
             dist = np.linalg.norm(coord1 - coord2)
             if dist < 10.0: #angstroms
-                edges.add(tuple(sorted((int(seq_num1), int(seq_num2)))))
+                edges.add((int(seq_num1), int(seq_num2)))
+                edges.add((int(seq_num2), int(seq_num1)))
                 true_example[i] = 1
                 seq_dist_total += abs(int(seq_num1) - int(seq_num2))
+    return edges, len(sequence), dist_cutoff
     edge_density = get_three_factor_stats(edges, len(sequence), dist_cutoff)
 
     #suff_stats_protein = np.concatenate((features, np.array([num_edges], dtype=int), edge_density))
-
+    #return amino_acid_index, edge_density, seq_dist_total, true_example, len(sequence)
     #convert to string, save file
     base = os.path.basename(filename)
     outfile = "{}/{}_processed.mat".format(outfolder, os.path.splitext(base)[0])

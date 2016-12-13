@@ -32,7 +32,8 @@ def get_three_factor_stats(edges, seqlen, cutoff):
 			if (first == third) or (second == third):
 				continue
 			#if all three are observed, ignore
-			if not((first - third) < cutoff and (first - second) < cutoff and (first - third) < cutoff):
+			if not(abs(first - third) < cutoff and abs(first - second) < cutoff and abs(first - third) < cutoff):
+				#print (first, third)
 				num_present = int((first, second) in edges)
 				num_present += int((first, third) in edges)
 				num_present += int((second, third) in edges)

@@ -13,7 +13,7 @@ N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
 lambdaBar = 0;
 options.maxIter = 1000;
 options.progTol = 1e-6;
-options.DerivativeCheck = 'on';
+options.DerivativeCheck = 'off';
 crfOpt.verbose = 0; % Print things while running? 
 crfOpt.nThreads = 4; % Number of threads to use
 crfOpt.condDist = 0; % condition on edges with sequence distance less than this
@@ -33,7 +33,7 @@ fprintf('Gradient Descent Elapsed in %0.1fs.\n', tstop);
 llTrace(1:length(outputInfo.trace.fval)) = outputInfo.trace.fval;
 
 %% Plot results
-muhat = margProbMean(theta_test, N, features_aa, seqlen_all, crfOpt); % change to test data
+muhat = margProbMean(thetaML, N, features_aa, seqlen_all, crfOpt); % change to test data
 
 %%
 t_val = 1:-0.001:0.001;

@@ -49,6 +49,7 @@ scores = glmval(b, all_vec, 'logit');
 [X, Y, T, AUC] = perfcurve(all_gt, scores, 1);
 disp(AUC);
 figure(1);
-plot(X, Y);
+hold on
+plot(X, Y, 'm', 'LineWidth', 2);
 
 

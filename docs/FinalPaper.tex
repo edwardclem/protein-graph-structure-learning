@@ -60,7 +60,7 @@ Additionally we note that $\mathbb{P}(x_{ij} \mid x_{ik} = 1, x_{jk} = 1) > \mat
 The full log-likelihood is then given by
 \begin{multline} \label{eq:likelihood}
 \mathcal{L}(y, \theta) = \exp\bigg\{\sum_{i, j} x_{ij}\bigg[\theta_{\textmd{dist}}|i - j|+ \theta_{\textmd{seqlen}}N + \sum_{A, B} \theta_{A, B}\mathds{1}\{y_i = A, y_j = B\}\bigg] \\
-\sum_{i, j, k}\Big(\theta_2\mathds{1}\{x_{ij} + x_{ik} + x_{jk} = 2\} + \theta_3\mathds{1}\{x_{ij} + x_{ik} + x_{jk} = 3\}\Big)\bigg\}
+\sum_{i, j, k}\Big(\theta_2\mathds{1}\{x_{ij} + x_{ik} + x_{jk} = 2\} + \theta_3\mathds{1}\{x_{ij} + x_{ik} + x_{jk} = 3\}\Big)  - \Phi(y, \theta) \bigg\}
 \end{multline}
 
 This likelihood then factorizes into the graphical model depicted in Figure \ref{fig:model} below.
@@ -86,23 +86,61 @@ This likelihood then factorizes into the graphical model depicted in Figure \ref
 	\plate [inner sep=.3cm,xshift=.02cm,yshift=.2cm] {platej} {(xij)(yj)(xjk)} {$j > i$};
 	\plate [inner sep=.3cm,xshift=.02cm,yshift=.2cm] {platei} {(yi)(xik)(platej)(platek)} {$1 \leq i < N$};
 \end{tikzpicture}
-\caption{Graphical model of Eq. \ref{eq:likelihood}. $x_{ij}$ has factor representing conditional probability given $y_i, y_j$. $x_{ij}, x_{jk}, x_{ik}$ have factor increasing the probability of the third if the other two equal 1.}
+\caption{Graphical model of Eq. \ref{eq:likelihood}. $x_{ij}$ has factor representing conditional probability given $y_i, y_j$. $x_{ij}, x_{jk}, x_{ik}$ have factors increasing the probability of the third if the other two equal 1.}
 \label{fig:model}
 \end{figure}
 
 \section{Methods}
 \subsection{Mean Field}
-% Include log-likelihood traces on small data sets
-% Algorithm w/ and w/o parallelization
-% Stochastic Gradient Descent?
-\subsection{Pseudo likelihood Maximization}
+
+As performing full inference on such a large densely connected graph would be computationally difficult, we employed several approximations in the process of learning and inference for our model. One such method, mean field inference, approximates the graph as fully disconnected, and minimizes a variational objective function:
+
+\begin{multline} \label{eq:mflikelihood}
+\mathcal{L}(y, \theta) = \exp\bigg\{\sum_{i, j} x_{ij}\bigg[\theta_{\textmd{dist}}|i - j|+ \theta_{\textmd{seqlen}}N + \sum_{A, B} \theta_{A, B}\mathds{1}\{y_i = A, y_j = B\}\bigg] \\
+\sum_{i, j, k}\Big(\theta_2\mathds{1}\{x_{ij} + x_{ik} + x_{jk} = 2\} + \theta_3\mathds{1}\{x_{ij} + x_{ik} + x_{jk} = 3\}\Big)  - F(\hat{\mu}_{y}, \theta) \bigg\}
+\end{multline}
+
+Where 
+
+\begin{multline} \label{eq:f}
+F(\mu, \theta) = \sum_{i, j, k} \bigg[\theta_2 \big[\mu_{ij}\mu_{jk}(1-\mu_{ik}) + \mu_ij(1-\mu_{jk})\mu_{ik} + (1 - \mu_{ij})\mu_{jk}\mu_{ik} \big] + \theta_3 \mu_{ij}\mu_{jk}\mu_{ik} \bigg] \\
++ \sum_{i, jj}\mu_{ij}\bigg[\theta_{\textmd{dist}}|i - j|+ \theta_{\textmd{seqlen}}N + \sum_{A, B} \theta_{A, B}\mathds{1}\{y_i = A, y_j = B\}\bigg] - \mu_{ij} \log{\mu_{ij}} (1 - \mu_{ij})\log{(1 - \mu_{ij})}
+\end{multline}
+
+and $\mu_{ij}$ is the approximate mean for edge indicator $x_{ij}$ under the mean field approximation. To calculate the mean-field likelihood, first we need $\hat{\mu}_{y}$, the value of $\mu$ that maximizes $F(\mu, \theta)$ for a particular observation set $y$. $\hat{\mu}_{y}$ is computed using coordinate ascent over all $\mu_{ij}$. which is a significant contributor to the computational cost of our training algorithm:
+
+%ALGORITHM
+
+%Explanation of the computational cost
+
+
+%parallel algorithm
+
+%discussion, although most will be discussed in results
+
+
+%log-likelihood traces
+\subsection{Pseudo Likelihood Maximization}
+
+To more effectively learn our model parameters, we used pseudo-likelihood maximization, which maximizes the conditional likelihood of nodes given their neighbors $p(x_{ij} | x_{\Gamma(x_{ij})}$. This allows for the rapid computation of the log-normalizer, without the costly calculation of $\hat{\mu}_{y}$ at each timestep. 
+
+\begin{multline}\label{eq:pll}
+\log p(x_{ij} = 1 | x_{\Gamma(x_{ij})}) = \bigg[\theta_{\textmd{dist}}|i - j|+ \theta_{\textmd{seqlen}}N + \sum_{A, B} \theta_{A, B}\mathds{1}\{y_i = A, y_j = B\}\bigg] + \sum_k \theta_3 \big[\mathds{1}\{ x_{ik} + x_{jk} = 2\}  \\
++ \theta_2 \mathds{1}\{x_{ij} + x_{jk} = 1\} \big] \\
+\log p(x_{ij} = 0 | x_{\Gamma(x_{ij})}) =  \sum_k \theta_2 \big[\mathds{1}\{ x_{ik} + x_{jk} = 2\} \\
+Pll(y, \theta) = \sum_{ij} \log \big[\exp( \log p(x_{ij} = 1 | x_{\Gamma(x_{ij})})) + \exp( \log p(x_{ij} = 0 | x_{\Gamma(x_{ij})})) \bigg]
+\end{multline}
+
+
+%equations
+
 % Log-likelihood traces
 
 \section{Results}
 % Data
 To train and test our model, we are using protein data from the Protein Data Bank. PDB files contain x, y, z coordinates for each atom in each amino amino acid of a protein. From these coordinates, distances between atoms can be computed and converted into a graph, where edges exist between amino acids if they lie within a threshold distance $d$ of each other, with $d = 10 {\AA}$ for our initial data processing. We are using a 1000-protein set for our initial model training and testing, with 750 allocated for training and 250 for test. These graphs will serve two primary purposes: training and testing our factor potentials, as well as providing ground-truth data for our edge prediction model. Fig. \ref{fig:contactgraph} contains example of a graph produced from a processed PBD file. 
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \includegraphics[scale=0.3]{1aa2_plot.png}
 \caption{Amino Acid Contact graph for Protein 1AA2.}

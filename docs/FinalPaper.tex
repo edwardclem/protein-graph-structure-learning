@@ -21,6 +21,9 @@
 \date{December 20, 2016}
 \author{Roshan Rao and Edward Williams}
 
+\begin{document}
+\maketitle
+
 \section{Introduction}
 \vspace*{-0.1in}
 Protein structure prediction is a seminal problem in computational biology. The goal of protein structure prediction is to infer the 3D structure of a protein from its amino acid sequence. Previous work in this field generally uses simulated annealing to determine protein structure, however Pacheco et. al. are currently attempting to apply the D-PMP algorithm, which had success in the sub-problem of protein side chain prediction, to full structure prediction. D-PMP is a dynamic programming algorithm that operates on pairwise Markov Random Fields (MRFs). A protein can be represented as a pairwise MRF by assigning a variable to each amino acid to keep track of its position and orientation, and adding an edge between variables if the corresponding amino acids are close enough to interact. 

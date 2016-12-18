@@ -193,6 +193,8 @@ Pll(y, \theta) = \sum_{ij} \log \big[\exp( \log p(x_{ij} = 1 | x_{\Gamma(x_{ij})
 % Log-likelihood traces
 
 \section{Results}
+
+\subsection{Data}
 % Data
 To train and test our model, we are using protein data from the Protein Data Bank. PDB files contain x, y, z coordinates for each atom in each amino amino acid of a protein. From these coordinates, distances between atoms can be computed and converted into a graph, where edges exist between amino acids if they lie within a threshold distance $d$ of each other, with $d = 10 {\AA}$ for our initial data processing. We are using a 1000-protein set for our initial model training and testing, with 750 allocated for training and 250 for test. These graphs will serve two primary purposes: training and testing our factor potentials, as well as providing ground-truth data for our edge prediction model. Fig. \ref{fig:contactgraph} contains example of a graph produced from a processed PDB file. 
 
@@ -205,7 +207,26 @@ To train and test our model, we are using protein data from the Protein Data Ban
  
 We observe that for this protein, most edges are highly localized among adjacent amino acids. However, many edges have connections across the protein, which is in and of itself an indicator of protein fold structure. We also observe that this graph is relatively sparse (compared to the complete graph), with 882 edges connecting 108 amino acids. 
 
+\subsection{Model Results - ROC Curve}
+
 % Final Results
+
+%ROC CURVE
+
+INSERT FIGURE HERE
+
+The above figure displays the performance of the two models and a logistic baseline on a data set of N (CHANGE) training proteins, and M (CHANGE) test proteins. The ROC curve for  mean field learning is \textit{worse} than that of a random classifier, which has three possible implications for our model. The first is that there is some as-yet-undiscovered bug in our model code, leading to an error in calculating the gradient or log-likelihood that affects performance. The second is that gradient descent learning is getting stuck in a local optimum, leading to suboptimal results on test data. The third, and most likely, is that the mean field approximation is simply a poor approximation for this graph topology - modeling such a densely connected graph as fully disconnected ignores the graph topology and much of the effects of the triplet factors. The logistic classifier and the pseudo-log-likelihood model perform much better, although the pseudo-log-likelihood model performs similarly to the logistic classifier. A possible explanation is that the signal from the amino acid observations alone is not very strong, which hampers the effectiveness of the triplet factors and leads to the same performance. It is worth noting that the amino acid feature weights are always set to very low values in the mean field and pseudo-log-likelihood models (INSERT EXAMPLES HERE), indicating that the informational content of these features is low. While the amino acid pair may indicate pairing tendency within a single proteins, the general tendency of amino acids to be spatially close across multiple proteins is not very informative. This is clearly illustrated by the following contact maps, which show the relationship between amino acid pair distance and prediction. 
+
+\subsection{Model Results - Individual Proteins}
+
+
+IMAGE MAPS HERE
+
+IMAGE MAP DISCUSSION
+
+
+\section{Conclusion and Future Work}
+
 
 \begin{thebibliography}{9}
 {\setlength\itemsep{0.0em}

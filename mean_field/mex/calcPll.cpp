@@ -42,14 +42,13 @@ double calcPll(
 
 	double seq_feat = seqlen*theta_seqlen;
 	double edge_feats = 0;
-	double alpha_ij;
-	double beta_ij;
-	double a_plus_b;
-	double num_present[] = {0, 0, 0, 0}; //double to ensure division works
+	double alpha_ij, beta_ij, a_plus_b, prob_ij;
+	double nBeta2, nAlpha2, nAlpha3; //double to ensure division works
 	int num_present_alpha;
 	int num_present_beta;
 
-
+	int total2_false, total2_true, total3;
+	double probData = 0;
 	// i, j are less equals, but k is less than to deal with sum over two versus sum over three elements
 	for (int i = 0; i < seqlen-1; i++) {
 		for (int j = i+1; j < seqlen; j++) {
@@ -60,7 +59,14 @@ double calcPll(
 			//for edge ij, the amino acid indicator will be nonzero at only one location, so use that to index into gammas
 			alpha_ij = (gamma[feats_aa[get_idx(seqlen, i, j)]] + theta_dist*(j - i) + seq_feat + theta_prior);
 			beta_ij = 0;
+			x_ij = x[get_idx(seqlen, i, j)];
 
+			nBeta2 = 0;
+			nAlpha2 = 0;
+			nAlpha3 = 0;
+			total2_false = 0;
+			total2_true = 0;
+			total3 = 0;
 			for (int k = 0; k < seqlen; k++){
 				if ((k == i) || (k == j))
 					continue;
@@ -71,31 +77,42 @@ double calcPll(
 				if (x_ik + x_jk == 2) {
 					beta_ij += theta_tri[2];
 					alpha_ij += theta_tri[3];
-					num_present[2] += 1;
-					num_present[3] += 1;
+					nBeta2 += 1;
+					nAlpha3 += 1;
+					if (x_ij)
+						total3 += 1;
+					else
+						total2_false += 1;
 				} else if (x_ik + x_jk == 1) {
 					alpha_ij += theta_tri[2];
-					num_present[2] += 1;
+					nAlpha2 += 1;
+					if (x_ij)
+						total2_true += 1;
 				}
 			}
 
 			a_plus_b = exp(alpha_ij) + exp(beta_ij);
-			//mexPrintf("%0.2f, alpha: %0.2f, beta: %0.2f\n", a_plus_b, alpha_ij, beta_ij);
+			//mexPrintf("alpha: %0.2f, beta: %0.2f\n", alpha_ij, beta_ij);
 			Pll +=  log(a_plus_b);
+			prob_ij = exp(alpha_ij)/a_plus_b;
+			if (x[get_idx(seqlen, i, j)])
+				probData += log(prob_ij);
+			else
+				probData += log((1 - prob_ij));
 
-			for (int n_edge = 2; n_edge < 4; n_edge++){
-				gradPll[n_edge] += num_present[n_edge]/a_plus_b;
-				num_present[n_edge] = 0; //reset to zero
-			}
+			gradPll[2] += total2_false - nBeta2*(1 - prob_ij);
+			gradPll[2] += total2_true - nAlpha2*prob_ij;
+			gradPll[3] += total3 - nAlpha3*prob_ij;
 
-			gradPll[NUM_INTERACTIONS + feats_aa[get_idx(seqlen, i, j)]] += 1/a_plus_b; // aa feature
-			gradPll[NUM_INTERACTIONS + NUM_AA_FEATS] += ((double)(j - i))/a_plus_b; // dist feature
-			gradPll[NUM_INTERACTIONS + NUM_AA_FEATS + 1] += seqlen/a_plus_b; // seqlen feature
-			gradPll[NUM_INTERACTIONS + NUM_AA_FEATS + 2] += 1/a_plus_b; // prior
+			gradPll[NUM_INTERACTIONS + feats_aa[get_idx(seqlen, i, j)]] += x_ij - prob_ij; // aa feature
+			gradPll[NUM_INTERACTIONS + NUM_AA_FEATS] += ((double)(j - i))*(x_ij - prob_ij); // dist feature
+			gradPll[NUM_INTERACTIONS + NUM_AA_FEATS + 1] += seqlen*(x_ij - prob_ij); // seqlen feature
+			gradPll[NUM_INTERACTIONS + NUM_AA_FEATS + 2] += x_ij - prob_ij; // prior
 		}
 	}
-
-	return Pll;
+	//mexPrintf("%0.2f\n", probData);
+	//mexPrintf("total2: %d, total3: %d\n", total2, total3);
+	return probData - Pll;
 
 }
 

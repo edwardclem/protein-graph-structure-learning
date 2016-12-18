@@ -59,7 +59,7 @@ void calc_muhat(
 
 
 	int mu_idx;
-	double alpha;
+	double alpha, beta;
 	double mu_ik, mu_jk;
 	double prob_0, prob_1, prob_2, prob_3;
 	double diff = 0;
@@ -73,6 +73,7 @@ void calc_muhat(
 				} else{
 					
 					alpha = 0;
+					beta = 0;
 
 					// Calculation for sequence features. Depends on ij features.
 
@@ -90,18 +91,23 @@ void calc_muhat(
 						mu_ik = mus[get_idx(seqlen, i, k)];
 						mu_jk = mus[get_idx(seqlen, j, k)];
 
-						prob_0 = -(1 - mu_ik)*(1 - mu_jk);
-						prob_1 = (1 - mu_ik)*(1 - mu_jk) - mu_ik*(1 - mu_jk) - (1 - mu_ik)*mu_jk;
-						prob_2 = mu_ik*(1 - mu_jk) + (1 - mu_ik)*mu_jk - mu_ik*mu_jk;
-						prob_3 = mu_ik*mu_jk;
+						// prob_0 = -(1 - mu_ik)*(1 - mu_jk);
+						// prob_1 = (1 - mu_ik)*(1 - mu_jk) - mu_ik*(1 - mu_jk) - (1 - mu_ik)*mu_jk;
+						// prob_2 = mu_ik*(1 - mu_jk) + (1 - mu_ik)*mu_jk - mu_ik*mu_jk;
+						// prob_3 = mu_ik*mu_jk;
 
-						alpha += theta_tri[0]*prob_0 + theta_tri[1]*prob_1 + theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
+						// alpha += theta_tri[0]*prob_0 + theta_tri[1]*prob_1 + theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
 						//alpha += theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
+						alpha += theta_tri[2]*(mu_ik*(1 - mu_jk) + (1 - mu_ik)*mu_jk);
+						alpha += theta_tri[3]*(mu_ik*mu_jk);
+						beta += theta_tri[2]*(mu_ik*mu_jk);
+
 					}
 					
 					alpha = exp(alpha);
-					diff += std::abs(mus[mu_idx] - (alpha / (1 + alpha)));
-					mus[mu_idx] = alpha / (1 + alpha);
+					beta = exp(beta);
+					diff += std::abs(mus[mu_idx] - (alpha / (beta + alpha)));
+					mus[mu_idx] = alpha / (beta + alpha);
 				}
 			}
 		}

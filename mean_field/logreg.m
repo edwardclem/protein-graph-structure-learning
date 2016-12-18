@@ -4,7 +4,7 @@ seed = 0;
 rng(seed);
 
 %% Load data, split into train + test
-directory = '../data/data_parallel';
+directory = '../data/data_test';
 [ss_proteins, features_aa, seqlen_all, gt] = load_data(directory);
 L = numel(features_aa); % seqlen variable
 N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges

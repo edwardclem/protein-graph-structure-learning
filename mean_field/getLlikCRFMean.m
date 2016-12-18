@@ -1,4 +1,4 @@
-function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, crfOpt)
+function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, gt, crfOpt)
     % [ll,grad] = getLlikCRFMean(theta, ss, L, N, feats)
     % Compute the negative log-likelihood and gradient for the CRF with a
     % mean-field approximation.
@@ -49,7 +49,8 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, crfOpt)
     for l = 1:L
         [F_l, gradF_l] = calcF(mus{l}, feats{l}, seqlen(l), ...
                             theta(1:4), gamma, theta(end-2), ...
-                            theta(end-1), theta(end), crfOpt.condDist);
+                            theta(end-1), theta(end), crfOpt.condDist, ...
+                            gt{l});
         F = F + F_l;
         gradF = gradF + gradF_l;
     end

@@ -90,8 +90,8 @@ double calcF(
 						F += theta_tri[2]*prob_2 + theta_tri[3]*prob_3;
 						//gradF[0] += prob_0;
 						//gradF[1] += prob_1;
-						gradF[2] += (x_ij + x_ik + x_jk) - prob_2;
-						gradF[3] += (x_ij + x_ik + x_jk) - prob_3;
+						gradF[2] += (x_ij + x_ik + x_jk) - 2*prob_2;
+						gradF[3] += (x_ij + x_ik + x_jk) - 3*prob_3;
 						
 					}
 				}
@@ -109,8 +109,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	if (nrhs != 10)
 		mexErrMsgTxt("calcF: Requires nine arguments.");
-	if ( (!mxIsClass(prhs[1], "uint32")) || (!mxIsClass(prhs[2], "uint32")) )
-		mexErrMsgTxt("calcF: Arguments 2 and 3 must be UINT32.");
+	if ( (!mxIsClass(prhs[1], "int32")) || (!mxIsClass(prhs[2], "int32")) )
+		mexErrMsgTxt("calcF: Arguments 2 and 3 must be INT32.");
 
 	const double *mus = mxGetPr(prhs[0]);
 	const int *feats_aa = (int *) mxGetData(prhs[1]);

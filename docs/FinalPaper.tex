@@ -66,7 +66,7 @@ The full log-likelihood is then given by
 \end{multline}
 
 This likelihood then factorizes into the graphical model depicted in Figure \ref{fig:model} below.
-\begin{figure}[H]
+\begin{figure}
 \centering
 \begin{tikzpicture}[-, >=stealth', shorten >=1pt, auto, node distance=2cm, every state/.style={fill=white, draw=black, text=black, ellipse, align=center}]
 	\node[state] (xij) {$x_{ij}$};
@@ -109,23 +109,8 @@ F(\mu, \theta) = \sum_{i, j}\mu_{ij}\bigg[\theta_{\textmd{dist}}|i - j|+ \theta_
 - \mu_{ij} \log{\mu_{ij}} - (1 - \mu_{ij})\log{(1 - \mu_{ij})}
 \end{multline}
 
-and $\mu_{ij}$ is the approximate mean for edge indicator $x_{ij}$ under the mean field approximation. To calculate the mean-field likelihood, first we need $\hat{\mu}_{y}$, the value of $\mu$ that maximizes $F(\mu, \theta)$ for a particular observation set $y$. $\hat{\mu}_{y}$ is computed using coordinate ascent over all $\mu_{ij}$. which is a significant contributor to the computational cost of our training algorithm:
+and $\mu_{ij}$ is the marginal probability of $x_{ij}$ under the mean field approximation. To calculate the mean-field likelihood, first we need $\hat{\mu}_{y}$, the value of $\mu$ that maximizes $F(\mu, \theta)$ for a particular observation set $y$. $\hat{\mu}_{y}$ is computed using coordinate ascent over all $\mu_{ij}$. which is a significant contributor to the computational cost of our training algorithm.
 
-%ALGORITHM
-
-%Explanation of the computational cost
-
-
-%parallel algorithm
-
-%discussion, although most will be discussed in results
-
-
-%log-likelihood traces
-
-% Include log-likelihood traces on small data sets
-% Algorithm w/ and w/o parallelization
-% Stochastic Gradient Descent?
 \begin{algorithm}
 \caption{Mean Field estimation of parameters $\theta$. Inputs are $\sigma$, the sufficient statistics, and $\phi(y)$ a feature vector for each of $L$ proteins in the training set. The \textsc{mfGetTheta} function is implemented in MATLAB, but the \textsc{mfInference} function is implemented in C++ with a Mex interface.}\label{alg:mf}
 \begin{algorithmic}
@@ -157,9 +142,9 @@ and $\mu_{ij}$ is the approximate mean for edge indicator $x_{ij}$ under the mea
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
-However, despite implementing \textsc{mfInference} in C++, the resulting inference algorithm is extremely slow. Inference requires approximately 45 minutes on a dataset of 11 relatively small proteins ($N < 1000$ for all proteins). On a larger dataset of 80 proteins, we ran inference for several days but it did not converge. The bottleneck is clearly $\textsc{mfInference}$. On the 11 protein dataset a single call to $\textsc{mfInference}$ could take up to five minutes. On the large dataset, it could take up to five hours. No other function call takes time within that order of magnitude.
+Calculating $\hat{\mu}$ is implemented as \textsc{mfInference} in Algorithm \ref{alg:mf}, however despite implementing \textsc{mfInference} in C++, the resulting inference algorithm is extremely slow. Inference requires approximately 45 minutes on a dataset of 11 relatively small proteins ($N < 1000$ for all proteins). On a larger dataset of 80 proteins, we ran inference for several days but it did not converge. The bottleneck is clearly $\textsc{mfInference}$. On the 11 protein dataset a single call to $\textsc{mfInference}$ could take up to five minutes. On the large dataset, it could take up to five hours. No other function call takes time within that order of magnitude.
 
-One obvious solution to this problem is parallelization. Estimating $\hat{\mu}^{(\ell)}$ is independent of all other proteins given the features for the $\ell$-th protein and $\theta$. Therefore, we replace $\textsc{mfInference}$ with Alg. \ref{alg:mf_parallel}.
+One obvious solution to this problem is parallelization. Estimating $\hat{\mu}^{(\ell)}$ is independent of all other proteins given the features for the $\ell$-th protein and $\theta$. Therefore, we replace $\textsc{mfInference}$ with a parallelized version in Algorithm \ref{alg:mf_parallel}.
 
 \begin{algorithm}
 \caption{Parallelized Mean Field estimation of parameters $\theta$. Same as Alg. \ref{alg:mf}, but with \textsc{mfInference} implemented as \textsc{mfInferenceParallel}.}\label{alg:mf_parallel}
@@ -178,15 +163,20 @@ One obvious solution to this problem is parallelization. Estimating $\hat{\mu}^{
 
 \subsection{Pseudo Likelihood Maximization}
 
-To more effectively learn our model parameters, we used pseudo-likelihood maximization, which maximizes the conditional likelihood of nodes given their neighbors $p(x_{ij} | x_{\Gamma(x_{ij})}$. This allows for the rapid computation of the log-normalizer, without the costly calculation of $\hat{\mu}_{y}$ at each timestep. 
+To more effectively learn our model parameters, we used pseudo-likelihood maximization, which maximizes the conditional likelihood of nodes given their neighbors $p(x_{ij} | x_{\Gamma(x_{ij})}$. This allows for the rapid computation of the log-normalizer, without the costly calculation of $\hat{\mu}$ at each timestep. 
 
-\begin{multline}\label{eq:pll}
-\log p(x_{ij} = 1 | x_{\Gamma(x_{ij})}) = \bigg[\theta_{\textmd{dist}}|i - j|+ \theta_{\textmd{seqlen}}N + \sum_{A, B} \theta_{A, B}\mathds{1}\{y_i = A, y_j = B\}\bigg] + \sum_k \theta_3 \big[\mathds{1}\{ x_{ik} + x_{jk} = 2\}  \\
-+ \theta_2 \mathds{1}\{x_{ij} + x_{jk} = 1\} \big] \\
-\log p(x_{ij} = 0 | x_{\Gamma(x_{ij})}) =  \sum_k \theta_2 \big[\mathds{1}\{ x_{ik} + x_{jk} = 2\} \\
-Pll(y, \theta) = \sum_{ij} \log \big[\exp( \log p(x_{ij} = 1 | x_{\Gamma(x_{ij})})) + \exp( \log p(x_{ij} = 0 | x_{\Gamma(x_{ij})})) \bigg]
-\end{multline}
+\begin{multline*}
+\log p(x_{ij} = 1 | x_{\Gamma(x_{ij})}) = \bigg[\theta_{\textmd{dist}}|i - j|+ \theta_{\textmd{seqlen}}N + \sum_{A, B} \theta_{A, B}\mathds{1}\{y_i = A, y_j = B\}\bigg] \\
++ \sum_k \theta_3 \big[\mathds{1}\{ x_{ik} + x_{jk} = 2\}  + \theta_2 \mathds{1}\{x_{ij} + x_{jk} = 1\} \big]
+\end{multline*}
+\begin{equation*}
+\log p(x_{ij} = 0 | x_{\Gamma(x_{ij})}) =  \sum_k \theta_2 \mathds{1}\{ x_{ik} + x_{jk} = 2\}
+\end{equation*}
+\begin{equation} \label{eq:pll}
+Pll(y, \theta) = \sum_{ij} \log \bigg[\exp( \log p(x_{ij} = 1 | x_{\Gamma(x_{ij})})) + \exp( \log p(x_{ij} = 0 | x_{\Gamma(x_{ij})})) \bigg]
+\end{equation}
 
+We replace the calculation of $F$ with $Pll$ in Algorithm $\ref{alg:mf}$. This removes the need for \textsc{mfInference} during training (although we still use \textsc{mfInference} at test time).
 
 %equations
 
@@ -196,12 +186,12 @@ Pll(y, \theta) = \sum_{ij} \log \big[\exp( \log p(x_{ij} = 1 | x_{\Gamma(x_{ij})
 % Data
 To train and test our model, we are using protein data from the Protein Data Bank. PDB files contain x, y, z coordinates for each atom in each amino amino acid of a protein. From these coordinates, distances between atoms can be computed and converted into a graph, where edges exist between amino acids if they lie within a threshold distance $d$ of each other, with $d = 10 {\AA}$ for our initial data processing. We are using a 1000-protein set for our initial model training and testing, with 750 allocated for training and 250 for test. These graphs will serve two primary purposes: training and testing our factor potentials, as well as providing ground-truth data for our edge prediction model. Fig. \ref{fig:contactgraph} contains example of a graph produced from a processed PDB file. 
 
-\begin{figure}[H]
-\centering
-\includegraphics[scale=0.3]{1aa2_plot.png}
-\caption{Amino Acid Contact graph for Protein 1AA2.}
-\label{fig:contactgraph}
-\end{figure}
+%\begin{figure}
+%\centering
+%\includegraphics[scale=0.3]{1aa2_plot.png}
+%\caption{Amino Acid Contact graph for Protein 1AA2.}
+%\label{fig:contactgraph}
+%\end{figure}
  
 We observe that for this protein, most edges are highly localized among adjacent amino acids. However, many edges have connections across the protein, which is in and of itself an indicator of protein fold structure. We also observe that this graph is relatively sparse (compared to the complete graph), with 882 edges connecting 108 amino acids. 
 

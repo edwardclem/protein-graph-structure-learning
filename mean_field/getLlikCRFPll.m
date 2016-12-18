@@ -43,7 +43,7 @@ function [ ll,grad ] = getLlikCRFPll(theta, gt, ss, L, N, feats, seqlen, crfOpt)
     if crfOpt.verbose; fprintf('\tCalculating Pll and gradPll... '); end;
     tstart = tic;
     for l = 1:L
-        [Pll_l, gradPll_l] = calcPll(gt{l}, feats{l}, seqlen(l), ...
+        [Pll_l, gradPll_l] = calcLogistic(gt{l}, feats{l}, seqlen(l), ...
                             theta(1:4), gamma, theta(end-2), ...
                             theta(end-1), theta(end), crfOpt.condDist);
         Pll = Pll + Pll_l;
@@ -54,7 +54,7 @@ function [ ll,grad ] = getLlikCRFPll(theta, gt, ss, L, N, feats, seqlen, crfOpt)
     ll = Pll;
     %grad = ss - gradPll;
     grad = gradPll;
-    grad(1:2) = 0;
+    %grad(1:2) = 0;
 %     disp([ss(3:4) gradPll(3:4)])
     %keyboard
     if crfOpt.verbose; fprintf('done. Time: %0.1fs. GradVal: %0.3f\n', tstop, norm(grad)); end;

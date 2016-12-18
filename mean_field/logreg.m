@@ -37,14 +37,38 @@ total_edges = numel(all_gt);
 %options.MaxIter = 1000;
 %options.TolX = 1e-6;
 
-[b, ~, stats] = glmfit(all_vec, all_gt, 'binomial', 'link', 'logit');
+%[b, ~, stats] = glmfit(all_vec, all_gt, 'binomial', 'link', 'logit');
 
-%[b, FitInfo] = lassoglm(all_vec,all_gt,'binomial','link','logit', 'lambda', 0.0);
+%% Run Logistic Regression
+
+% Options
+lambdaBar = 0;
+options.maxIter = 1000;
+options.progTol = 1e-9;
+crfOpt.verbose = 0; % Print things while running? 
+crfOpt.nThreads = 4; % Number of threads to use
+crfOpt.condDist = 0; % condition on edges with sequence distance less than this
+
+% Setup inputs
+%log likelihood is indeed fun
+funLL = @(theta)getLlikLogistic(theta, gt, L, features_aa, seqlen_all, crfOpt);
+theta = zeros([numel(ss_proteins) - 4, 1]);
+lambdaL2 = ones(size(theta))*lambdaBar;
+llTrace = NaN(options.maxIter, 1);
+
+% Run Mean Field
+fprintf('Starting Logistic Regression CRF\n');
+tstart = tic;
+[thetaML,~, ~, outputInfo] = minFunc(@penalizedL2, theta, options, funLL, lambdaL2);
+
+tstop = toc(tstart);
+fprintf('Gradient Descent Elapsed in %0.1fs.\n', tstop);
+llTrace(1:length(outputInfo.trace.fval)) = outputInfo.trace.fval;
 
 %% Testing (on training data for now)
 
-
-scores = glmval(b, all_vec, 'logit');
+thetaTest = [thetaML(end); thetaML(1:end-1)];
+scores = glmval(thetaTest, all_vec, 'logit');
 
 [X, Y, T, AUC] = perfcurve(all_gt, scores, 1);
 disp(AUC);

@@ -71,6 +71,7 @@ def features_from_pdb(filename, outfolder, dist_cutoff):
                 edges.add((int(seq_num2), int(seq_num1)))
                 true_example[i] = 1
                 seq_dist_total += abs(int(seq_num1) - int(seq_num2))
+    return edges
     edge_density = get_three_factor_stats(edges, len(sequence), dist_cutoff)
 
     #suff_stats_protein = np.concatenate((features, np.array([num_edges], dtype=int), edge_density))

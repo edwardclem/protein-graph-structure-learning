@@ -67,6 +67,7 @@ double calcPll(
 			total2_false = 0;
 			total2_true = 0;
 			total3 = 0;
+			/*
 			for (int k = 0; k < seqlen; k++){
 				if ((k == i) || (k == j))
 					continue;
@@ -89,7 +90,7 @@ double calcPll(
 					if (x_ij)
 						total2_true += 1;
 				}
-			}
+			}*/
 
 			a_plus_b = exp(alpha_ij) + exp(beta_ij);
 			//mexPrintf("alpha: %0.2f, beta: %0.2f\n", alpha_ij, beta_ij);
@@ -100,9 +101,9 @@ double calcPll(
 			else
 				probData += log((1 - prob_ij));
 
-			gradPll[2] += total2_false - nBeta2*(1 - prob_ij);
-			gradPll[2] += total2_true - nAlpha2*prob_ij;
-			gradPll[3] += total3 - nAlpha3*prob_ij;
+			//gradPll[2] += total2_false - nBeta2*(1 - prob_ij);
+			//gradPll[2] += total2_true - nAlpha2*prob_ij;
+			//gradPll[3] += total3 - nAlpha3*prob_ij;
 
 			gradPll[NUM_INTERACTIONS + feats_aa[get_idx(seqlen, i, j)]] += x_ij - prob_ij; // aa feature
 			gradPll[NUM_INTERACTIONS + NUM_AA_FEATS] += ((double)(j - i))*(x_ij - prob_ij); // dist feature

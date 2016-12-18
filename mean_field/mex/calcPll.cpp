@@ -67,7 +67,6 @@ double calcPll(
 			total2_false = 0;
 			total2_true = 0;
 			total3 = 0;
-			/*
 			for (int k = 0; k < seqlen; k++){
 				if ((k == i) || (k == j))
 					continue;
@@ -90,7 +89,7 @@ double calcPll(
 					if (x_ij)
 						total2_true += 1;
 				}
-			}*/
+			}
 
 			a_plus_b = exp(alpha_ij) + exp(beta_ij);
 			//mexPrintf("alpha: %0.2f, beta: %0.2f\n", alpha_ij, beta_ij);

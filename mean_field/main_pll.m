@@ -83,5 +83,9 @@ adj = 1 - adj;
 true_adj = 1 - true_adj;
 figure(1)
 imshow(adj)
+axis on
+set(gca,'XAxisLocation','top')
 figure(2)
 imshow(true_adj)
+set(gca,'XAxisLocation','top')
+axis on

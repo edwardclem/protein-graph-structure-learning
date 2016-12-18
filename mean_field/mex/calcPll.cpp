@@ -34,7 +34,7 @@ double calcPll(
 	const double theta_seqlen, 
 	const double theta_prior, 
 	double *gradPll,
-	int condition_dist) {
+	const int condition_dist) {
 
 	double Pll = 0;
 	double x_ij, x_ik, x_jk;
@@ -123,14 +123,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if ( (!mxIsClass(prhs[1], "uint32")) || (!mxIsClass(prhs[2], "uint32")) )
 		mexErrMsgTxt("calcPll: Arguments 2 and 3 must be UINT32.");
 
-	int *x = (int *) mxGetData(prhs[0]);
-	int *feats_aa = (int *) mxGetData(prhs[1]);
-	int seqlen = *((int *) mxGetData(prhs[2]));
-	double *theta_tri = mxGetPr(prhs[3]);
-	double *gamma = mxGetPr(prhs[4]);
-	double theta_dist = *(mxGetPr(prhs[5]));
-	double theta_seqlen = *(mxGetPr(prhs[6]));
-	double theta_prior = *(mxGetPr(prhs[7]));
+	const int *x = (int *) mxGetData(prhs[0]);
+	const int *feats_aa = (int *) mxGetData(prhs[1]);
+	const int seqlen = *((int *) mxGetData(prhs[2]));
+	const double *theta_tri = mxGetPr(prhs[3]);
+	const double *gamma = mxGetPr(prhs[4]);
+	const double theta_dist = *(mxGetPr(prhs[5]));
+	const double theta_seqlen = *(mxGetPr(prhs[6]));
+	const double theta_prior = *(mxGetPr(prhs[7]));
 	const int condition_dist = *((int *) mxGetData(prhs[8]));
 
 	// char buf[100];

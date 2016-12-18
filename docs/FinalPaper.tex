@@ -12,6 +12,8 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows, automata, shapes, bayesnet}
 \usepackage{dsfont}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \usepackage{float}
 \usepackage{hyperref}
@@ -89,12 +91,62 @@ This likelihood then factorizes into the graphical model depicted in Figure \ref
 % Include log-likelihood traces on small data sets
 % Algorithm w/ and w/o parallelization
 % Stochastic Gradient Descent?
+\begin{algorithm}
+\caption{Mean Field estimation of parameters $\theta$. Inputs are $\sigma$, the sufficient statistics, and $\phi(y)$ a feature vector for each of $L$ proteins in the training set. The \textsc{mfGetTheta} function is implemented in MATLAB, but the \textsc{mfInference} function is implemented in C++ with a Mex interface.}\label{alg:mf}
+\begin{algorithmic}
+\Function{mfGetTheta}{$\sigma, \phi(y)$}
+	\While{$progress > convTol$}
+		\State $\hat{\mu} \gets \Call{mfInference}{\phi(y), \theta}$ \Comment{note that this is a $O(20LN^3)$ operation}
+		\State $ll \gets \theta^T\sigma - F(\hat{\mu}, \theta)$ \Comment{calculating $F$ also $O(LN^3)$}
+		\State $\nabla_\theta ll \gets \sigma - \nabla_\theta F(\hat{\mu}, \theta)$
+		\State $\theta \gets \theta - \epsilon\nabla_\theta ll$
+	\EndWhile
+\EndFunction
+\\
+\Function{mfInference}{$\phi(y), \theta$}
+	\For{$\ell \gets 1:L$}
+		\For{$iter \gets 1:20$} \Comment{until convergence}
+			\For{$i \gets 1:N-1$}
+				\For{$j \gets i+1:N$}
+					\State $\alpha \gets 0$
+					\State Add value from sequence features to $\alpha$
+					\For{$k \gets 1:N, k \neq i, j$}
+						\State Add value from three-way factors to $\alpha$
+					\EndFor
+					\State $\hat{\mu}^{(\ell)}_{i,j} = \exp(\alpha)/(1 + \exp(\alpha))$
+				\EndFor
+			\EndFor
+		\EndFor
+	\EndFor
+	\State \Return $\hat{\mu}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+However, despite implementing \textsc{mfInference} in C++, the resulting inference algorithm is extremely slow. Inference requires approximately 45 minutes on a dataset of 11 relatively small proteins ($N < 1000$ for all proteins). On a larger dataset of 80 proteins, we ran inference for several days but it did not converge. The bottleneck is clearly $\textsc{mfInference}$. On the 11 protein dataset a single call to $\textsc{mfInference}$ could take up to five minutes. On the large dataset, it could take up to five hours. No other function call takes time within that order of magnitude.
+
+One obvious solution to this problem is parallelization. Estimating $\hat{\mu}^{(\ell)}$ is independent of all other proteins given the features for the $\ell$-th protein and $\theta$. Therefore, we replace $\textsc{mfInference}$ with Alg. \ref{alg:mf_parallel}.
+
+\begin{algorithm}
+\caption{Parallelized Mean Field estimation of parameters $\theta$. Same as Alg. \ref{alg:mf}, but with \textsc{mfInference} implemented as \textsc{mfInferenceParallel}.}\label{alg:mf_parallel}
+\begin{algorithmic}
+\Function{mfInferenceParallel}{$\phi(y), \theta$}
+	\State $nRunningThreads \gets 0$
+	\For{$\ell \gets 1:L$}
+		\State Wait until $nRunningThreads < nMaxThreads$
+		\State Launch new thread to calculate $\mu^{(\ell)}$. Decrement $nRunningThreads$ when thread finishes.
+		\State Increment $nRunningThreads$
+	\EndFor
+	\State \Return $\hat{\mu}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Pseudo likelihood Maximization}
 % Log-likelihood traces
 
 \section{Results}
 % Data
-To train and test our model, we are using protein data from the Protein Data Bank. PDB files contain x, y, z coordinates for each atom in each amino amino acid of a protein. From these coordinates, distances between atoms can be computed and converted into a graph, where edges exist between amino acids if they lie within a threshold distance $d$ of each other, with $d = 10 {\AA}$ for our initial data processing. We are using a 1000-protein set for our initial model training and testing, with 750 allocated for training and 250 for test. These graphs will serve two primary purposes: training and testing our factor potentials, as well as providing ground-truth data for our edge prediction model. Fig. \ref{fig:contactgraph} contains example of a graph produced from a processed PBD file. 
+To train and test our model, we are using protein data from the Protein Data Bank. PDB files contain x, y, z coordinates for each atom in each amino amino acid of a protein. From these coordinates, distances between atoms can be computed and converted into a graph, where edges exist between amino acids if they lie within a threshold distance $d$ of each other, with $d = 10 {\AA}$ for our initial data processing. We are using a 1000-protein set for our initial model training and testing, with 750 allocated for training and 250 for test. These graphs will serve two primary purposes: training and testing our factor potentials, as well as providing ground-truth data for our edge prediction model. Fig. \ref{fig:contactgraph} contains example of a graph produced from a processed PDB file. 
 
 \begin{figure}
 \centering

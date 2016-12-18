@@ -172,11 +172,12 @@ To more effectively learn our model parameters, we used pseudo-likelihood maximi
 \begin{equation*}
 \log p(x_{ij} = 0 | x_{\Gamma(x_{ij})}) =  \sum_k \theta_2 \mathds{1}\{ x_{ik} + x_{jk} = 2\}
 \end{equation*}
-\begin{equation} \label{eq:pll}
-Pll(y, \theta) = \sum_{ij} \log \bigg[\exp( \log p(x_{ij} = 1 | x_{\Gamma(x_{ij})})) + \exp( \log p(x_{ij} = 0 | x_{\Gamma(x_{ij})})) \bigg]
-\end{equation}
+\begin{multline} \label{eq:pll}
+Pll(y, \theta) = \sum_{ij} \log p(x_{ij} | x_{\Gamma(x_{ij})}) \\
+- \log \bigg[\exp( \log p(x_{ij} = 1 | x_{\Gamma(x_{ij})})) + \exp( \log p(x_{ij} = 0 | x_{\Gamma(x_{ij})})) \bigg]
+\end{multline}
 
-We replace the calculation of $F$ with $Pll$ in Algorithm $\ref{alg:mf}$. This removes the need for \textsc{mfInference} during training (although we still use \textsc{mfInference} at test time).
+We replace the calculation of $ll$ with $Pll$ in Algorithm $\ref{alg:mf}$. This removes the need for \textsc{mfInference} during training (although we still use \textsc{mfInference} at test time).
 
 %equations
 

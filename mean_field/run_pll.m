@@ -21,7 +21,7 @@ crfOpt.nThreads = nThreads; % Number of threads to use
 crfOpt.condDist = condDist; %conditioning on this distance
 
 % Setup inputs
-funLL = @(theta)getLlikCRFPll(theta, gt_train, ss_proteins, L, N, features_aa, seqlen_all, crfOpt);
+funLL = @(theta)getLlikCRFPll(theta, gt_train, L, features_aa, seqlen_all, crfOpt);
 theta = zeros([numel(ss_proteins), 1]);
 lambdaL2 = ones(size(theta))*lambdaBar;
 llTrace = NaN(options.maxIter, 1);

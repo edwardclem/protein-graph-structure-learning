@@ -42,7 +42,7 @@ for l = 1:L_test
     scores{l} = logInfer(feats_test{l}, seqlen_test(l), thetaML(1:end-3), ...
                         thetaML(end-2), thetaML(end-1), thetaML(end), crfOpt.condDist);
 end
-all_gt = double(vertcat(gt{:}));
+all_gt = double(vertcat(gt_test{:}));
 scores = vertcat(scores{:});
 [X, Y, T, AUC] = perfcurve(all_gt, scores, 1);
 fprintf('Saving to output file');

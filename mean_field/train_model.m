@@ -21,7 +21,7 @@ crfOpt.nThreads = nThreads; % Number of threads to use
 crfOpt.condDist = condDist; %conditioning on this distance
 
 % Setup inputs
-funLL = @(theta)getLlikCRFMean(theta, ss_proteins, L, N, features_aa, seqlen_all, crfOpt);
+funLL = @(theta)getLlikCRFMean(theta, ss_proteins, L, N, features_aa, seqlen_all, gt, crfOpt);
 theta = zeros([numel(ss_proteins), 1]);
 lambdaL2 = ones(size(theta))*lambdaBar;
 llTrace = NaN(options.maxIter, 1);
@@ -36,7 +36,7 @@ toc
 N_test = seqlen_test.*(seqlen_test - 1)/2; % Number of possible edges
 
 % Plot results
-muhat = margProbMean(thetaML, N_test, features_test, seqlen_test, crfOpt); % change to test data
+muhat = margProbMean(thetaML, N_test, features_test, seqlen_test, crfOpt);
 
 %using built-in ROC functions
 

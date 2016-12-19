@@ -16,6 +16,7 @@
 \usepackage{algpseudocode}
 
 \usepackage{float}
+\usepackage{subcaption}
 \usepackage{hyperref}
 \usepackage[final, nonatbib]{nips_2016}
 
@@ -210,8 +211,28 @@ The above figure displays the performance of the two models and a logistic basel
 
 \subsection{Model Results - Individual Proteins}
 
-
 IMAGE MAPS HERE
+\begin{figure}
+\centering
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\linewidth]{paper_images/true_adj.eps}
+\centering
+\caption{True adjacency matrix.}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\linewidth]{paper_images/logistic_adj.eps}
+\centering
+\caption{Logistic regression estimate.}
+\end{subfigure}
+
+\\
+
+\begin{subfigure}{0.3\textwidth}
+\includegraphics[width=\linewidth]{paper_images/pll_adj.eps}
+\centering
+\caption{Pseudo log-likelihood estimate}
+\end{subfigure}
+\end{figure}
 
 IMAGE MAP DISCUSSION
 

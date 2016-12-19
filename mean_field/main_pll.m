@@ -54,7 +54,7 @@ plot(0:0.1:1, 0:0.1:1, 'r--', 'LineWidth', 2);
 legend('Pll', 'Logistic', 'Random', 'Location', 'SouthEast')
 
 %% Generate image map:
-t = 0.503;
+t = 0.1;
 
 directory = '../data/data_pll/test';
 [ss_proteins, features_aa, seqlen, gt] = load_data(directory);
@@ -73,7 +73,7 @@ for i = 1:seqlen-1
     for j = i+1:seqlen
         adj(i, j) = assignments(edgeIndex);
         adj(j, i) = adj(i, j);
-        true_adj(i, j) = all_gt(edgeIndex);
+        true_adj(i, j) = gt(edgeIndex);
         true_adj(j, i) = true_adj(i, j);
         edgeIndex = edgeIndex + 1;
     end

@@ -42,8 +42,8 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, gt, crfOpt
     % Compute joint and marginal statistics for current model
     mus = margProbMean(theta,N,feats,seqlen,crfOpt);
     gamma = theta(5:end-3);
-    F = 0;
-    gradF = zeros(size(ss));
+    ll = 0;
+    grad = zeros(size(ss));
     if crfOpt.verbose; fprintf('\tCalculating F and gradF... '); end;
     tstart = tic;
     for l = 1:L
@@ -51,12 +51,10 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, gt, crfOpt
                             theta(1:4), gamma, theta(end-2), ...
                             theta(end-1), theta(end), crfOpt.condDist, ...
                             gt{l});
-        F = F + F_l;
-        gradF = gradF + gradF_l;
+        ll = ll + F_l;
+        grad = grad + gradF_l;
     end
     tstop = toc(tstart);
-    ll = F;
-    grad = gradF;
 %    keyboard;
     if crfOpt.verbose; fprintf('done. Time: %0.1fs. GradVal: %0.3f\n', tstop, norm(grad)); end;
     ll = -ll;

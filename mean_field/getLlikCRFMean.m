@@ -55,8 +55,9 @@ function [ ll,grad ] = getLlikCRFMean(theta, ss, L, N, feats, seqlen, gt, crfOpt
         gradF = gradF + gradF_l;
     end
     tstop = toc(tstart);
-    ll = theta'*ss - F;
-    grad = ss - gradF;
+    ll = F;
+    grad = gradF;
+%    keyboard;
     if crfOpt.verbose; fprintf('done. Time: %0.1fs. GradVal: %0.3f\n', tstop, norm(grad)); end;
     ll = -ll;
     grad = -grad;

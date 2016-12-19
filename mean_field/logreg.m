@@ -5,7 +5,7 @@ rng(seed);
 
 %% Load data, split into train + test
 directory = '../data/data_pll';
-[ss_proteins, features_aa, seqlen_all, gt] = load_data(directory);
+[~, features_aa, seqlen_all, gt] = load_data(directory);
 L = numel(features_aa); % seqlen variables
 N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
 
@@ -66,10 +66,17 @@ fprintf('Gradient Descent Elapsed in %0.1fs.\n', tstop);
 llTrace(1:length(outputInfo.trace.fval)) = outputInfo.trace.fval;
 
 %% Testing (on training data for now)
-
-thetaTest = [thetaML(end); thetaML(1:end-1)];
-scores = glmval(thetaTest, all_vec, 'logit');
-
+directory = '../data/data_pll';
+[~, feats_test, seqlen_test, gt_test] = load_data(directory);
+L_test = numel(feats_test); % seqlen variables
+%thetaTest = [thetaML(end); thetaML(1:end-1)];
+scores = cell(L, 1);
+for l = 1:L
+    scores{l} = logInfer(feats_test{l}, seqlen_test(l), thetaML(1:end-3), ...
+                        thetaML(end-2), thetaML(end-1), thetaML(end), crfOpt.condDist);
+end
+all_gt = double(vertcat(gt{:}));
+scores = vertcat(scores{:});
 [X, Y, T, AUC] = perfcurve(all_gt, scores, 1);
 disp(AUC);
 figure(1);

@@ -51,9 +51,7 @@ double calcLogistic(
 			//conditioning
 			//if (j - i > condition_dist){
 
-			// Calculation for sequence features. Depends only on mu_ij
-			//for edge ij, the amino acid indicator will be nonzero at only one location, so use that to index into gammas
-			
+			// Calculation for sequence features.
 			x_ij = x[get_idx(seqlen, i, j)];
 			alpha_ij = sigmoid(gamma[feats_aa[get_idx(seqlen, i, j)]] + theta_dist*(j - i) + seq_feat + theta_prior);
 			cost += x_ij*log(alpha_ij) + (1 - x_ij)*log(1 - alpha_ij);

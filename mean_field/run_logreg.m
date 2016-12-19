@@ -4,7 +4,7 @@ seed = 0;
 rng(seed);
 
 % Load training data
-[~, features_aa, seqlen_all, gt] = load_data(train_data);
+[ss_proteins, features_aa, seqlen_all, gt] = load_data(train_data);
 L = numel(features_aa); % seqlen variable
 
 % Run Logistic Regression

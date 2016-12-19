@@ -1,4 +1,4 @@
-function [ ll,grad ] = getLlikCRFPll(theta, gt, ss, L, N, feats, seqlen, crfOpt)
+function [ Pll,grad ] = getLlikCRFPll(theta, gt, L, feats, seqlen, crfOpt)
     % [ll,grad] = getLlikCRFMean(theta, ss, L, N, feats)
     % Compute the negative log-likelihood and gradient for the CRF with a
     % mean-field approximation.
@@ -39,7 +39,7 @@ function [ ll,grad ] = getLlikCRFPll(theta, gt, ss, L, N, feats, seqlen, crfOpt)
     % Compute joint and marginal statistics for current model
     gamma = theta(5:end-3);
     Pll = 0;
-    gradPll = zeros(size(ss));
+    grad = zeros(size(theta));
     if crfOpt.verbose; fprintf('\tCalculating Pll and gradPll... '); end;
     tstart = tic;
     for l = 1:L
@@ -47,24 +47,13 @@ function [ ll,grad ] = getLlikCRFPll(theta, gt, ss, L, N, feats, seqlen, crfOpt)
                             theta(1:4), gamma, theta(end-2), ...
                             theta(end-1), theta(end), crfOpt.condDist);
         Pll = Pll + Pll_l;
-        gradPll = gradPll + gradPll_l;
+        grad = grad + gradPll_l;
     end
     tstop = toc(tstart);
-    %ll = theta'*ss - Pll;
-    ll = Pll;
-    %grad = ss - gradPll;
-    grad = gradPll;
-    %grad(1:2) = 0;
-%     disp([ss(3:4) gradPll(3:4)])
-    %keyboard
     if crfOpt.verbose; fprintf('done. Time: %0.1fs. GradVal: %0.3f\n', tstop, norm(grad)); end;
     
-    ll = -ll;
+    Pll = -Pll;
     grad = -grad;
-    % DEBUG!!
-    %grad(1:4) = 0;
-    %grad(end-2) = 0;
-    
 end
 
 

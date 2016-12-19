@@ -100,9 +100,9 @@ double calcPll(
 			else
 				probData += log((1 - prob_ij));
 
-			//gradPll[2] += total2_false - nBeta2*(1 - prob_ij);
-			//gradPll[2] += total2_true - nAlpha2*prob_ij;
-			//gradPll[3] += total3 - nAlpha3*prob_ij;
+			gradPll[2] += total2_false - nBeta2*(1 - prob_ij);
+			gradPll[2] += total2_true - nAlpha2*prob_ij;
+			gradPll[3] += total3 - nAlpha3*prob_ij;
 
 			gradPll[NUM_INTERACTIONS + feats_aa[get_idx(seqlen, i, j)]] += x_ij - prob_ij; // aa feature
 			gradPll[NUM_INTERACTIONS + NUM_AA_FEATS] += ((double)(j - i))*(x_ij - prob_ij); // dist feature
@@ -120,8 +120,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	if (nrhs != 9)
 		mexErrMsgTxt("calcPll: Requires nine arguments.");
-	if ( (!mxIsClass(prhs[1], "uint32")) || (!mxIsClass(prhs[2], "uint32")) )
-		mexErrMsgTxt("calcPll: Arguments 2 and 3 must be UINT32.");
+	if ( (!mxIsClass(prhs[0], "int32")) || (!mxIsClass(prhs[1], "int32")) || (!mxIsClass(prhs[2], "int32")) )
+		mexErrMsgTxt("calcPll: Arguments 1, 2, and 3 must be INT32.");
 
 	const int *x = (int *) mxGetData(prhs[0]);
 	const int *feats_aa = (int *) mxGetData(prhs[1]);

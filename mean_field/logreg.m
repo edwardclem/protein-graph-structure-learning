@@ -10,27 +10,27 @@ L = numel(features_aa); % seqlen variables
 N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
 
 %% Generate vectors
-edge_vectors = cell(L, 1);
-
-num_aa = 20*(20 + 1)/2;
-
-for l=1:L
-    vecs = zeros(N(l), num_aa + 2); %20 amino acid features, 1 dist, 1 seqlen 
-    seqlen = int32(seqlen_all(l));
-    vecs(:, num_aa + 2) = seqlen;
-    for i = 0:(seqlen - 2)
-        for j = (i+1):(seqlen - 1)
-            lin_idx = i*seqlen - (i + 1)*(i+2)/2 + j + 1; %one-indexing
-            vecs(lin_idx, features_aa{l}(lin_idx) + 1) = 1;
-            vecs(lin_idx, num_aa + 1) = j - i; %distance feature
-        end
-    end
-    edge_vectors{l} = vecs;
-end
-
-all_vec = double(vertcat(edge_vectors{:}));
-all_gt = double(vertcat(gt{:}));
-total_edges = numel(all_gt);
+% edge_vectors = cell(L, 1);
+% 
+% num_aa = 20*(20 + 1)/2;
+% 
+% for l=1:L
+%     vecs = zeros(N(l), num_aa + 2); %20 amino acid features, 1 dist, 1 seqlen 
+%     seqlen = int32(seqlen_all(l));
+%     vecs(:, num_aa + 2) = seqlen;
+%     for i = 0:(seqlen - 2)
+%         for j = (i+1):(seqlen - 1)
+%             lin_idx = i*seqlen - (i + 1)*(i+2)/2 + j + 1; %one-indexing
+%             vecs(lin_idx, features_aa{l}(lin_idx) + 1) = 1;
+%             vecs(lin_idx, num_aa + 1) = j - i; %distance feature
+%         end
+%     end
+%     edge_vectors{l} = vecs;
+% end
+% 
+% all_vec = double(vertcat(edge_vectors{:}));
+% all_gt = double(vertcat(gt{:}));
+% total_edges = numel(all_gt);
 
 %% Perform logistic regression
 

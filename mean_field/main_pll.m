@@ -54,26 +54,26 @@ plot(0:0.1:1, 0:0.1:1, 'r--', 'LineWidth', 2);
 legend('Pll', 'Logistic', 'Random', 'Location', 'SouthEast')
 
 %% Generate image map:
-t = 0.1;
-
 directory = '../data/data_pll/test';
-[ss_proteins, features_aa, seqlen, gt] = load_data(directory);
-L = numel(features_aa); % seqlen variable
-N = seqlen.*(seqlen - 1)/2; % Number of possible edges
+[~, feats_test, seqlen_test, gt_test] = load_data(directory);
+gt_test = gt_test{1};
+L = numel(feats_test); % seqlen variable
+N = seqlen_test.*(seqlen_test - 1)/2; % Number of possible edges
 
-muhat = margProbMean(thetaML, N, features_aa, seqlen, crfOpt);
-
+muhat = margProbMean(thetaML, N, feats_test, seqlen_test, crfOpt);
 scores = muhat{1};
 
+%%
+t = mean(scores) + 1.5*std(scores);
 assignments = scores > t;
-adj = zeros(seqlen);
-true_adj = zeros(seqlen);
+adj = zeros(seqlen_test);
+true_adj = zeros(seqlen_test);
 edgeIndex = 1;
-for i = 1:seqlen-1
-    for j = i+1:seqlen
+for i = 1:seqlen_test-1
+    for j = i+1:seqlen_test
         adj(i, j) = assignments(edgeIndex);
         adj(j, i) = adj(i, j);
-        true_adj(i, j) = gt(edgeIndex);
+        true_adj(i, j) = gt_test(edgeIndex);
         true_adj(j, i) = true_adj(i, j);
         edgeIndex = edgeIndex + 1;
     end

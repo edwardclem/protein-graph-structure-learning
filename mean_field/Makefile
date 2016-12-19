@@ -1,7 +1,7 @@
 include Makefile.conf
 
 # Define build targets
-MATLAB_TARGETS: build/calcF$(ME) build/calc_muhat$(ME) build/calc_muhat_parallel$(ME) build/calc_muhat_parallel_cond$(ME) build/calcPll$(ME) build/calcLogistic$(ME)
+MATLAB_TARGETS: build/calcF$(ME) build/calc_muhat$(ME) build/calc_muhat_parallel$(ME) build/calc_muhat_parallel_cond$(ME) build/calcPll$(ME) build/calcLogistic$(ME) build/logInfer$(ME)
 TARGETS:=$(TARGETS) $(MATLAB_TARGETS)
 
 MEX:=$(MEX) $(MEXFLAGS) $(MEXINC) $(MEXLIB) $(MEXLIBS)
@@ -34,6 +34,9 @@ build/calcPll$(ME) : mex/calcPll.cpp
 
 build/calcLogistic$(ME) : mex/calcLogistic.cpp
 	$(MEX) $(MEXOUTFLAG) $@ mex/calcLogistic.cpp
+
+build/logInfer$(ME) : mex/logInfer.cpp
+	$(MEX) $(MEXOUTFLAG) $@ mex/logInfer.cpp
 	
 # CLEAN
 ########

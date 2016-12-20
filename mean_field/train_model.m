@@ -5,8 +5,8 @@ rng(seed);
 
 % Load data
 disp(train_data);
-[ss_proteins, features_aa, seqlen_all, ~] = load_data(train_data);
-L = numel(features_aa); % seqlen variable
+[ss_proteins, features_aa, seqlen_all, gt] = load_data(train_data);
+L = numel(features_aa); % seqlen variabale
 disp(L);
 N = seqlen_all.*(seqlen_all - 1)/2; % Number of possible edges
 
@@ -32,7 +32,7 @@ tic;
 llTrace(1:length(outputInfo.trace.fval)) = outputInfo.trace.fval;
 toc
 %%load testing data
-[~, features_test, seqlen_test, gt] = load_data(test_data);
+[~, features_test, seqlen_test, gt_test] = load_data(test_data);
 N_test = seqlen_test.*(seqlen_test - 1)/2; % Number of possible edges
 
 % Plot results
@@ -41,7 +41,7 @@ muhat = margProbMean(thetaML, N_test, features_test, seqlen_test, crfOpt);
 %using built-in ROC functions
 
 all_mus = vertcat(muhat{1:end});
-all_gt = vertcat(gt{1:end});
+all_gt = vertcat(gt_test{1:end});
 
 [X, Y, T, AUC] = perfcurve(all_gt, all_mus, 1);
 save(outfile, 'X', 'Y', 'T', 'AUC', 'thetaML', 'llTrace');

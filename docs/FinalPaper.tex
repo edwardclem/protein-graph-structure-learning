@@ -20,18 +20,18 @@
 \usepackage{hyperref}
 \usepackage[final, nonatbib]{nips_2016}
 
-\title{Protein Contact Prediction with Three-way CRF Factors}
+\title{Protein Contact Prediction with Triplet CRF Factors}
 \date{December 20, 2016}
 \author{Roshan Rao and Edward Williams}
 
 \begin{document}
 \maketitle
-
 \section{Introduction}
 \vspace*{-0.1in}
 Protein structure prediction is a seminal problem in computational biology. The goal of protein structure prediction is to infer the 3D structure of a protein from its amino acid sequence. Previous work in this field generally uses simulated annealing to determine protein structure, however Pacheco et. al. are currently attempting to apply the D-PMP algorithm, which had success in the sub-problem of protein side chain prediction, to full structure prediction. D-PMP is a dynamic programming algorithm that operates on pairwise Markov Random Fields (MRFs). A protein can be represented as a pairwise MRF by assigning a variable to each amino acid to keep track of its position and orientation, and adding an edge between variables if the corresponding amino acids are close enough to interact. 
 
 In order to obtain efficient inference for D-PMP it is necessary to provide a sparse graphical model. Currently, D-PMP is being provided with the true graph structure, obtained using knowledge of the correct protein structure. Note that the complete graph is always a valid representation of a protein, but this requires high computational cost. However, although inter-atomic energies never vanish, they do have an inverse square relationship with distance. Therefore it is computationally beneficial to remove edges between amino acids that are beyond some specified interaction distance, and thus have inter-atomic energy near zero. On the other hand, removing edges between amino acids that are within that interaction distance can significantly impact energy evaluation and cause inference to fail. Seen in this manner, the problem of predicting a sparse graph structure is equivalent to determining the probability that two amino acids will be within the interaction distance in the final protein structure, with a goal of limiting false negatives. Here we describe a CRF-based method for estimating the adjacency matrix of a protein given its amino acid sequence, a problem known as protein contact prediction.
+
 \section{Related Work}
 
 Predicting amino acid contacts is an active area of research in the field of protein structure prediction. An accurate adjacency matrix for a protein's 3D structure is useful for two applications: initializing a protein structure prediction algorithm, and using the amino acid contacts to predict 3D structure directly. An accurate set of protein contacts reduces the number of pairwise interactions that must be calculated when predicting 3D protein configuration with an energy model. This reduces the computational load, speeding up execution time \cite{wuyun16}. 
@@ -54,6 +54,7 @@ x_{1N} & x_{2N} &          & \dots    & 0
 \Bigg| \; y_1, \ldots, y_N\Bigg) 
 \end{equation}
 where entry $x_{ij} = 1$ if the corresponding amino acids $y_i, y_j$ are within the specified interaction distance. We do this by extracting features from the amino acid sequence and creating an exponential family model, which we represent using a conditional random field (CRF). 
+
 \subsection{Features}
 We use three features extracted from the observed sequence $y$ along with a three-factor interaction feature between variables $x_{ij}, x_{ik},$ and $x_{jk}$. The sequence features are a distance feature $\phi_{\textmd{dist}}(y_i, y_j) = |i - j|$, a sequence length feature $\phi_{\textmd{seqlen}}(y) = N$ (which acts as a prior), and amino acid pair features. The amino acid pair features are defined as follows: let $A, B$ be two types of amino acids. Then $\phi_{A, B}(y_i, y_j) = \mathds{1}\{y_i = A, y_j = B\}$, with $\phi_{A, B} = \phi_{B, A}$. Since there are 20 total types of amino acids, this creates 210 distinct indicator variables.
 
@@ -95,6 +96,7 @@ This likelihood then factorizes into the graphical model depicted in Figure \ref
 
 \section{Methods}
 \subsection{Mean Field}
+
 As performing full inference on such a large densely connected graph would be computationally difficult, we employed several approximations in the process of learning and inference for our model. One such method, mean field inference, approximates the graph as fully disconnected, and minimizes a variational objective function:
 
 \begin{multline} \label{eq:mflikelihood}
@@ -182,35 +184,50 @@ We replace the calculation of $ll$ with $Pll$ in Algorithm $\ref{alg:mf}$. This 
 
 %equations
 
-% Log-likelihood traces
-
 \section{Results}
 
 \subsection{Data}
-% Data
-To train and test our model, we are using protein data from the Protein Data Bank. PDB files contain x, y, z coordinates for each atom in each amino amino acid of a protein. From these coordinates, distances between atoms can be computed and converted into a graph, where edges exist between amino acids if they lie within a threshold distance $d$ of each other, with $d = 10 {\AA}$ for our initial data processing. We are using a 1000-protein set for our initial model training and testing, with 750 allocated for training and 250 for test. These graphs will serve two primary purposes: training and testing our factor potentials, as well as providing ground-truth data for our edge prediction model. Fig. \ref{fig:contactgraph} contains example of a graph produced from a processed PDB file. 
 
-%\begin{figure}
-%\centering
-%\includegraphics[scale=0.3]{1aa2_plot.png}
-%\caption{Amino Acid Contact graph for Protein 1AA2.}
-%\label{fig:contactgraph}
-%\end{figure}
- 
-We observe that for this protein, most edges are highly localized among adjacent amino acids. However, many edges have connections across the protein, which is in and of itself an indicator of protein fold structure. We also observe that this graph is relatively sparse (compared to the complete graph), with 882 edges connecting 108 amino acids. 
+%TODO: CITE PDB?
+
+To train and test our model, we used protein data from the Protein Data Bank. PDB files contain x, y, z coordinates for each atom in each amino amino acid of a protein. From these coordinates, distances between atoms can be computed and converted into a graph, where edges exist between amino acids if they lie within a threshold distance $d$ of each other, with $d = 10 {\AA}$ for our initial data processing. We are using a 477-protein set for our initial model training and testing, with 331 allocated for training and 146 for test. 
+
+\subsection{Training}
+
+Below are log-likelihood traces when training the mean-field and pseudo-log-likelihood models on a training set of 331 proteins. Training the mean field model on the Brown CS Grid with 11 threads (1 main thread, 10 threads for calculating $\hat{\mu}$) took approximately 15 hours, while training the pseudolikelihood model with a single thread (using 10 for calculating mean field marginals at test time) took approximately 100 minutes. 
+
+\begin{figure}[H]
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\linewidth]{paper_images/mf_ll_trace.eps}
+\caption{Mean field log-likelhood trace}
+\label{fig:mf_lltrace}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\linewidth]{paper_images/pll_ll_trace.eps}
+\caption{Pseudo log-likelihood trace}
+\label{fig:pll_lltrace}
+\end{subfigure}
+\caption{Log-likelihood traces during training}
+\label{fig:lltrace}
+\end{figure}
 
 \subsection{Model Results - ROC Curve}
 
-% Final Results
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.7]{paper_images/roc_curve.eps}
+\caption{ROC Curve for Mean Field, Pseudolikelihood, Logistic, and Random models.}
+\label{fig:roc}
+\end{figure}
 
-%ROC CURVE
+The above figure displays the performance of the two models and a logistic baseline on a data set of 146 test proteins, after being trained on the 331 proteins in the training set. Neither the pseudolikelihood model nor the mean field model greatly outperforms the logistic baseline. This is particularly interesting, given that the pseudolikelihood and mean field models assign weight zero to all of the amino acid presence features, unlike the logistic model. The pseudolikelihood and mean field models are entirely relying on triplet factor weights and amino acid pair distance to perform inference. The logistic model assigns a strongly negative weight to the prior, with magnitude ten times that of the amino acid weights. The logistic model, however, assigns a weight close to zero to the distance features. This indicates that the logistic model is largely relying on the prior to determine if an amino acid pair is an edge, with some input from the distance and amino acid type features. This indicates that the amino acid pair features provide very little information to the triplet factors. 
 
-INSERT FIGURE HERE
+The triplet factors, in the absence of observations that provide a high signal to noise ratio, could encourage a "clumping" behavior that would exacerbate the model's dependence on the distance feature. Edge indicator variables that possess a short protein chain distance, and thus the highest possible signal under our limited observation set, would encourage other adjacent edge indicator variables to appear as positive. A sign of this is present in the ROC curve - the pseudolikelihood model (and the mean field model, to a lesser extent) outperforms the logistic model at lower decision boundaries, as it is likely picking up edges that have a lower distance and are connected via triplet factors. 
 
-The above figure displays the performance of the two models and a logistic baseline on a data set of N (CHANGE) training proteins, and M (CHANGE) test proteins. The ROC curve for  mean field learning is \textit{worse} than that of a random classifier, which has three possible implications for our model. The first is that there is some as-yet-undiscovered bug in our model code, leading to an error in calculating the gradient or log-likelihood that affects performance. The second is that gradient descent learning is getting stuck in a local optimum, leading to suboptimal results on test data. The third, and most likely, is that the mean field approximation is simply a poor approximation for this graph topology - modeling such a densely connected graph as fully disconnected ignores the graph topology and much of the effects of the triplet factors. The logistic classifier and the pseudo-log-likelihood model perform much better, although the pseudo-log-likelihood still performs worse than the logistic regression. A possible explanation is that the signal from the amino acid observations alone is not very strong, which hampers the effectiveness of the triplet factors and leads to the same performance. It is worth noting that the amino acid feature weights are always set to very low values in the mean field and pseudo-log-likelihood models (INSERT EXAMPLES HERE), indicating that the informational content of these features is low. While the amino acid pair may indicate pairing tendency within a single proteins, the general tendency of amino acids to be spatially close across multiple proteins is not very informative. This is clearly illustrated by the following contact maps, which show the relationship between amino acid pair distance and prediction. 
+All models exhibit a \textit{non-convex} ROC curve, which indicates that some some problem exists with the models themselves. One possibility is that there is an as-yet-undiscovered bug in our code that is impeding gradient calculation. Another is that the pseudolikelihood and mean field approximations are not suitable to this graphical model topology, although this is called into question by the behavior of the logistic model, which also has a non-convex ROC curve.
 
 \subsection{Model Results - Individual Proteins}
-\begin{figure}
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.45\textwidth}
 \includegraphics[width=\linewidth]{paper_images/true_adj.eps}
@@ -243,16 +260,19 @@ Additionally, both the mean field and pseudo log-likelihood estimates seem to ig
 
 Another point of interest is that the true adjacency matrix (Fig. \ref{fig:gt_adj}) does show some degree of clumping, which is encouraged by the three-factor potentials. This suggests that if stronger unary factors could be found, the three-factor potentials may work well, however with only the sequence distance feature providing a strong unary indicator, they work very poorly.
 
+\section{Conclusion}
+
+In this paper, we presented a method for identifying amino acid contacts in a protein chain using a conditional random field with three-edge spatial proximity triplet factors. As well, we presented mean field and pseudolikelihood approximations for performing learning and inference in a computationally tractable manner, in addition to a logistic baseline. 
+
+Our results demonstrated that while the model was able to successfully learn weights for the triplet factors, the observation set that we used was insufficient. To determine if two amino acids in a protein chain are spatially close, their types and distance in the protein chain are not enough information even if triplet factors are used. No model greatly outperformed a logistic classifier using only these features. However, we believe that with a different set of observations, the triplet factors could be effective in addressing the problem of protein contact prediction.
 
 \section{Future Work}
-Although the potential of the three-edge factors when applied to amino acid contact prediction has been demonstrated by this research, we have also shown that the amino acid observations used in our model are not particularly useful. An extension of our work would be applying the three-edge factors to the protein domain models learned by Ekeberg et al. and Golkov et al. \cite{ekeberg13} \cite{golkov16}. The use of evolutionary relationships and spatial relationships between amino acids in protein domain-specific Potts models provide a much stronger signal than simply observing the amino acid distance and amino acid types in a given edge. Combining our triplet factors, which will be particularly relevant when learning domain-specific potentials rather than general parameters across many protein types, with the existing pairwise relationships could capture more of the amino acid contact information. A more computationally expensive but likely useful model would learn triplet potentials for every individual triplet of amino acid pairs in the protein domain, although a large amount of data and time may be required to train such a model. 
+Although the potential of the three-edge factors when applied to amino acid contact prediction has been demonstrated by this research, we have also shown that the amino acid observations used in our model are not particularly useful. A relatively small change to our current model would be conditioning on the presence of edges that are close in the protein chain, and performing CRF training and inference otherwise normally. We investigated this possibility when developing our current method, but given the poor performance of the existing models on edges without that are not close in the protein chain, this may not provide any more information. A better approach would be to use a different source of observations altogether, such as returning to the evolutionary protein domain models mentioned earlier.  
 
+An extension of our work would be applying the three-edge factors to the protein domain models learned by Ekeberg et al. and Golkov et al. \cite{ekeberg13} \cite{golkov16}. The use of evolutionary relationships and spatial relationships between amino acids in protein domain-specific Potts models provide a much stronger signal than simply observing the amino acid distance and amino acid types in a given edge. Combining our triplet factors, which will be particularly relevant when learning domain-specific potentials rather than general parameters across many protein types, with the existing pairwise relationships could capture more of the amino acid contact information. A more computationally expensive but likely useful model would learn triplet potentials for every individual triplet of amino acid pairs in the protein domain, although a large amount of data and time may be required to train such a model.  
 
 \section{Contributions}
-
 Edward Williams wrote data processing code in Python, C++ code for calculating pseudo-log-likelihood, and C++ code for calculating $\hat{\mu}$ when performing mean field inference. Roshan Rao wrote the C++ code for calculating the mean field log-normalizer, parallelizing the calculation of $\hat{\mu}$, and performing logistic regression training and inference. Both members of the group wrote the final research paper.  
-
-
 
 \begin{thebibliography}{9}
 {\setlength\itemsep{0.0em}

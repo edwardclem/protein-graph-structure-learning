@@ -225,8 +225,6 @@ IMAGE MAPS HERE
 \caption{Logistic regression estimate.}
 \end{subfigure}
 
-\\
-
 \begin{subfigure}{0.3\textwidth}
 \includegraphics[width=\linewidth]{paper_images/pll_adj.eps}
 \centering
@@ -237,7 +235,14 @@ IMAGE MAPS HERE
 IMAGE MAP DISCUSSION
 
 
-\section{Conclusion and Future Work}
+\section{Future Work}
+Although the potential of the three-edge factors when applied to amino acid contact prediction has been demonstrated by this research, we have also shown that the amino acid observations used in our model are not particularly useful. An extension of our work would be applying the three-edge factors to the protein domain models learned by Ekeberg et al. and Golkov et al. \cite{ekeberg13} \cite{golkov16}. The use of evolutionary relationships and spatial relationships between amino acids in protein domain-specific Potts models provide a much stronger signal than simply observing the amino acid distance and amino acid types in a given edge. Combining our triplet factors, which will be particularly relevant when learning domain-specific potentials rather than general parameters across many protein types, with the existing pairwise relationships could capture more of the amino acid contact information. A more computationally expensive but likely useful model would learn triplet potentials for every individual triplet of amino acid pairs in the protein domain, although a large amount of data and time may be required to train such a model. 
+
+
+\section{Contributions}
+
+Edward Williams wrote data processing code in Python, C++ code for calculating pseudo-log-likelihood, and C++ code for calculating $\hat{\mu}$ when performing mean field inference. Roshan Rao wrote the C++ code for calculating the mean field log-normalizer, parallelizing the calculation of $\hat{\mu}$, and performing logistic regression training and inference. Both members of the group wrote the final research paper.  
+
 
 
 \begin{thebibliography}{9}

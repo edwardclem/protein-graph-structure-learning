@@ -210,29 +210,38 @@ INSERT FIGURE HERE
 The above figure displays the performance of the two models and a logistic baseline on a data set of N (CHANGE) training proteins, and M (CHANGE) test proteins. The ROC curve for  mean field learning is \textit{worse} than that of a random classifier, which has three possible implications for our model. The first is that there is some as-yet-undiscovered bug in our model code, leading to an error in calculating the gradient or log-likelihood that affects performance. The second is that gradient descent learning is getting stuck in a local optimum, leading to suboptimal results on test data. The third, and most likely, is that the mean field approximation is simply a poor approximation for this graph topology - modeling such a densely connected graph as fully disconnected ignores the graph topology and much of the effects of the triplet factors. The logistic classifier and the pseudo-log-likelihood model perform much better, although the pseudo-log-likelihood still performs worse than the logistic regression. A possible explanation is that the signal from the amino acid observations alone is not very strong, which hampers the effectiveness of the triplet factors and leads to the same performance. It is worth noting that the amino acid feature weights are always set to very low values in the mean field and pseudo-log-likelihood models (INSERT EXAMPLES HERE), indicating that the informational content of these features is low. While the amino acid pair may indicate pairing tendency within a single proteins, the general tendency of amino acids to be spatially close across multiple proteins is not very informative. This is clearly illustrated by the following contact maps, which show the relationship between amino acid pair distance and prediction. 
 
 \subsection{Model Results - Individual Proteins}
-
-IMAGE MAPS HERE
 \begin{figure}
 \centering
 \begin{subfigure}{0.45\textwidth}
 \includegraphics[width=\linewidth]{paper_images/true_adj.eps}
-\centering
 \caption{True adjacency matrix.}
+\label{fig:gt_adj}
 \end{subfigure}
 \begin{subfigure}{0.45\textwidth}
 \includegraphics[width=\linewidth]{paper_images/logistic_adj.eps}
-\centering
 \caption{Logistic regression estimate.}
+\label{fig:log_adj}
 \end{subfigure}
 
-\begin{subfigure}{0.3\textwidth}
-\includegraphics[width=\linewidth]{paper_images/pll_adj.eps}
-\centering
-\caption{Pseudo log-likelihood estimate}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\linewidth]{paper_images/mf_adj.eps}
+\caption{Mean field estimate}
+\label{fig:mf_adj}
 \end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\linewidth]{paper_images/pll_adj.eps}
+\caption{Pseudo log-likelihood estimate}
+\label{fig:pll_adj}
+\end{subfigure}
+\caption{True adjacency matrix and estimated matrices using logistic, mean field, and pseudo-log likelihood learning for protein 1EPS.}
+\label{fig:adjacency_estimate}
 \end{figure}
 
-IMAGE MAP DISCUSSION
+Figure \ref{fig:adjacency_estimate} shows estimated adjacency matrices using the two methods discussed, as well as a logistic regression baseline. Both methods used, as well as the logistic regression baseline show a heavy reliance on the sequence distance feature; essentially no long range contacts are captured at all. This suggests that the current feature set is not able to provide enough information to predict long range contacts, and that only the distance feature is being used. Therefore we believe it would be necessary to provide better features (such as evolutionary features) before assessing the success of these methods.
+
+Additionally, both the mean field and pseudo log-likelihood estimates seem to ignore amino acid type altogether. We are unsure why this should be the case. Although amino acid type does provide very little information, it should be enough to at least moderately affect the estimate. This could arise from a characteristic of the two approximations, where the amino acid feature is drowned out by other features, it could arise from the three-factor potentials encouraging clustering too strongly, or it could arise from a simple coding error.
+
+Another point of interest is that the true adjacency matrix (Fig. \ref{fig:gt_adj}) does show some degree of clumping, which is encouraged by the three-factor potentials. This suggests that if stronger unary factors could be found, the three-factor potentials may work well, however with only the sequence distance feature providing a strong unary indicator, they work very poorly.
 
 
 \section{Future Work}
